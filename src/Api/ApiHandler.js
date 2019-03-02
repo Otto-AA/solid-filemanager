@@ -22,11 +22,6 @@ const parseFetchSuccess = (response) => {
             }
             throw Error(messageTranslation['unknown_response']);
         }
-        else if (isAttachment) {
-            response.blob().then(blob => {
-                resolve(blob);
-            });
-        }
         else if (isJson) {
             response.json().then(json => {
                 if (!json.success) {
@@ -98,6 +93,7 @@ export const getFileBody = (path, filename) => {
     path = fixPath(path + '/' + filename);
     return API.getFileContent(path)
         .then(parseFetchSuccess)
+        .then(response => response.blob())
         .catch(handleFetchError)
 };
 
