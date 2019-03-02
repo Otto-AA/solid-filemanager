@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "/solid-filemanager/precache-manifest.c25bbfc9ac4e8c4d55ddaedbe7daf3ff.js"
+  "/solid-filemanager/build/precache-manifest.810180d866ecf6baae60abd1264f7740.js"
 );
 
 workbox.clientsClaim();
@@ -28,7 +28,7 @@ self.__precacheManifest = [].concat(self.__precacheManifest || []);
 workbox.precaching.suppressWarnings();
 workbox.precaching.precacheAndRoute(self.__precacheManifest, {});
 
-workbox.routing.registerNavigationRoute("/solid-filemanager/index.html", {
+workbox.routing.registerNavigationRoute("/solid-filemanager/build/index.html", {
   
   blacklist: [/^\/_/,/\/[^\/]+\.[^\/]+$/],
 });
