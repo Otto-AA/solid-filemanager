@@ -1,4 +1,38 @@
 import * as APIHandler from '../Api/ApiHandler.js';
+import * as solidAuth from 'solid-auth-client';
+import config from '../config.js';
+
+/**
+ * Request API to get file list for the selected path then refresh UI
+ * @returns {Function}
+ */
+export const solidLogin = () => (dispatch, getState) => {
+    dispatch(setLoading(true));
+
+    solidPopupLogin().then(webId => {
+        const origin = (new URL(webId)).origin;
+        config.host = origin;
+        dispatch(setVisibleDialogSolidLogin(false));
+        dispatch(refreshFileList());
+        dispatch(setLoading(false));
+    }).catch(r => {
+        dispatch({
+            type: 'SET_ERROR_MSG',
+            value: r.toString()
+        });
+        dispatch(setLoading(false));
+    });
+};
+
+async function solidPopupLogin() {
+    let session = await solidAuth.currentSession();
+    if (!session) {
+        let popupUri = 'https://solid.community/common/popup.html';
+        session = await solidAuth.popupLogin({ popupUri });
+    }
+    return(session.webId);
+}
+
 
 /**
  * Request API to get file list for the selected path then refresh UI
@@ -337,6 +371,13 @@ export const setPathSublist = (path) => {
     };
 };
 
+export const setHost = (host) => {
+    return {
+        type: 'SET_HOST',
+        value: host
+    };
+};
+
 export const enterToDirectory = (directory) => (dispatch, getState) => {
     dispatch({
         type: 'ENTER_TO_DIRECTORY',
@@ -435,6 +476,13 @@ export const setLoadingSublist = (value) => {
     return {
         type: 'SET_LOADING_SUB_LIST',
         value: value
+    };
+};
+
+export const setVisibleDialogSolidLogin = (visible) => {
+    return {
+        type: 'SET_VISIBLE_DIALOG_SOLID_LOGIN',
+        value: !!visible
     };
 };
 

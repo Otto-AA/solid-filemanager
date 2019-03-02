@@ -1,6 +1,7 @@
 export const defaultState = {
     path: [],
     pathSublist: [],
+    host: null,
     fileList: [],
     fileListSublist: [],
     fileListFilter: null,
@@ -12,6 +13,7 @@ export const defaultState = {
     loading: false,
     loadingSublist: false,
     errorMsg: null,
+    visibleDialogSolidLogin: true,
     visibleDialogCreateFolder: false,
     visibleDialogUploadFile: false,
     visibleDialogContent: false,
@@ -39,6 +41,10 @@ const MainReducer = (state = defaultState, action) => {
         case 'SET_PATH_SUB_LIST':
             return Object.assign({}, state, {
                 pathSublist: action.value
+            });
+        case 'SET_HOST':
+            return Object.assign({}, state, {
+                host: action.value
             });
         case 'ENTER_TO_DIRECTORY':
             return Object.assign({}, state, {
@@ -102,6 +108,11 @@ const MainReducer = (state = defaultState, action) => {
         case 'SET_ERROR_MSG':
             return Object.assign({}, state, { 
                 errorMsg: action.value
+            });
+
+        case 'SET_VISIBLE_DIALOG_SOLID_LOGIN':
+            return Object.assign({}, state, { 
+                visibleDialogSolidLogin: !!action.value
             });
 
         case 'SET_VISIBLE_DIALOG_CREATE_FOLDER':

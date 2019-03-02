@@ -88,7 +88,7 @@ function SearchAppBar(props) {
                 handleClickPath={handleClickPath} 
                 handleGoBack={handleGoBack}
                 canGoBack={canGoBack}
-                rootTitle="React Filemanager"
+                rootTitle="Solid Filemanager"
             />
           </Typography>
           <div className={classes.grow} />

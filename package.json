@@ -1,29 +1,32 @@
 {
-  "name": "react-filemanager",
+  "name": "solid-filemanager",
   "version": "0.0.14",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/joni2back/react-filemanager.git"
+    "url": "git+https://github.com/otto-aa/solid-filemanager.git"
   },
   "keywords": [
     "filemanager"
   ],
-  "author": "Jonas Sciangula Street",
+  "author": "A_A",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/joni2back/react-filemanager/issues"
+    "url": "https://github.com/otto-aa/solid-filemanager/issues"
   },
-  "homepage": "https://joni2back.github.io/react-filemanager",
+  "homepage": "https://otto-aa.github.io/solid-filemanager",
   "dependencies": {
     "@material-ui/core": "~3.5.1",
     "@material-ui/icons": "~3.0.1",
+    "rdflib": "^0.19.1",
     "react": "^16.6.3",
     "react-dom": "^16.6.3",
     "react-redux": "~5.1.1",
     "react-scripts": "2.1.1",
     "redux": "~4.0.1",
-    "redux-thunk": "~2.3.0"
+    "redux-thunk": "~2.3.0",
+    "solid-auth-client": "^2.2.14",
+    "solid-file-client": "^0.4.9"
   },
   "scripts": {
     "start": "react-scripts start",

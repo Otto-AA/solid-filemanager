@@ -1,4 +1,6 @@
 import config from './../config.js';
+import * as solidAuth from 'solid-auth-client';
+import * as fileClient from 'solid-file-client';
 
 /**
  * Fetch API to list files from directory
@@ -6,9 +8,9 @@ import config from './../config.js';
  * @returns {Object}
  */
 export function list(path) {
-    return fetch(config.url_list + '?path=' + (encodeURIComponent(path) || '/'));
+    const url = config.host + path;
+    return solidAuth.fetch(url);
 };
-
 
 /**
  * Fetch API to create a directory
@@ -17,15 +19,9 @@ export function list(path) {
  * @returns {Object}
  */
 export function createDirectory(path, directory) {
-    return fetch(config.url_create_folder, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            path, directory
-        })
-    });
+    const url = `${config.host}${path}/${directory}`;
+    return fileClient.createFolder(url)
+        .then(() => new Response());
 };
 
 
@@ -35,7 +31,8 @@ export function createDirectory(path, directory) {
  * @returns {Object}
  */
 export function getFileContent(path) {
-    return fetch(config.url_get_content + '?path=' + (encodeURIComponent(path) || '/'));
+    const url = config.host + path;
+    return solidAuth.fetch(url);
 };
 
 
@@ -43,57 +40,41 @@ export function getFileContent(path) {
  * Fetch API to remove a file or folder
  * @param {String} path
  * @param {Array} filenames
- * @param {Boolean} recursive
  * @returns {Object}
  */
-export function remove(path, filenames, recursive = true) {
-    return fetch(config.url_remove, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            path, filenames, recursive
-        })
-    });
+export function remove(path, filenames) {
+    const baseUrl = config.host + path;
+    const promises = filenames.map(filename => fileClient.deleteFile(`${baseUrl}/${filename}`));
+    return Promise.all(promises)
+        .then(() => new Response());
 };
 
 /**
  * Fetch API to move files
  * @param {String} path
+ * @param {String} destination
  * @param {Array} filenames
- * @param {Boolean} recursive
  * @returns {Object}
  */
 export function move(path, destination, filenames) {
-    return fetch(config.url_move, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            path, destination, filenames
-        })
-    });
+    return copy(path, destination, filenames)
+        .then(() => remove(path, filenames));
 };
 
 /**
- * Fetch API to move files
+ * Fetch API to rename files
  * @param {String} path
  * @param {Array} filenames
- * @param {Boolean} recursive
  * @returns {Object}
  */
-export function rename(path, destination) {
-    return fetch(config.url_rename, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            path, destination
-        })
-    });
+export function rename(path, filename, newFileName) {
+    const from = `${config.host}${path}/${filename}`;
+    const to = `${config.host}${path}/${newFileName}`;
+
+    return fileClient.copyFile(from, to)
+        .then(() => new Promise((resolve) => setTimeout(resolve, 5000)))
+        .then(() => fileClient.deleteFile(from))
+        .then(() => new Response());
 };
 
 /**
@@ -104,15 +85,12 @@ export function rename(path, destination) {
  * @returns {Object}
  */
 export function copy(path, destination, filenames) {
-    return fetch(config.url_copy, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            path, destination, filenames
-        })
-    });
+    const baseUrl = config.host + path;
+    const baseNewUrl = config.host + destination;
+
+    const promises = filenames.map(filename => fileClient.copyFile(`${baseUrl}/${filename}`, `${baseNewUrl}/${filename}`));
+    return Promise.all(promises)
+        .then(() => new Response());
 };
 
 /**
@@ -122,17 +100,9 @@ export function copy(path, destination, filenames) {
  * @returns {Object}
  */
 export function upload(path, fileList, formData = new FormData()) {
-    [...fileList].forEach(f => {
-        formData.append('file[]', f);
-    });
-    formData.append('path', path);
+    const baseUrl = config.host + path;
 
-    return fetch(config.url_upload, {
-        method: 'POST',
-        body: formData, 
-        headers: {
-            // a workaround for node connector, passing the path by header
-            path: path
-        }
-    });
+    const promises = Array.from(fileList).map(file => fileClient.updateFile(`${baseUrl}/${file.name}`, file));
+    return Promise.all(promises)
+        .then(() => new Response());
 };

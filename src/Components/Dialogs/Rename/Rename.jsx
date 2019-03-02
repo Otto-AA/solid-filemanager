@@ -35,6 +35,7 @@ class FormDialog extends Component {
                 <form>
                   <DialogTitle id="form-dialog-create-folder">Rename</DialogTitle>
                   <DialogContent>
+                      <p>This function is currently still buggy. File may be deleted by accident.</p>
                     <TextField autoFocus fullWidth margin="dense" label="Item name" type="text" onChange={this.handleChange.bind(this)} value={value} />
                   </DialogContent>
                   <DialogActions>

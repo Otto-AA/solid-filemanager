@@ -1,60 +1,70 @@
 import * as API from './Api.js';
 import config from './../config.js';
+import * as rdflib from 'rdflib';
+import * as folderUtils from './folderUtils.js';
 
 const messageTranslation = {
     'unknown_response': 'Unknown error response from connector',
     'TypeError: Failed to fetch': 'Cannot get a response from connector.',
 };
 
-/**
- * Response handler for fetch responses
- * @param {Function} resolve
- * @param {Function} reject
- * @returns {Object}
- */
-const handleFetch = (resolve, reject) => {
-    return {
-        xthen: (response) => {
-            const contentType = response.headers.get('content-type');
-            const contentDisp = response.headers.get('content-disposition');
-            const isJson = /(application|text)\/json/.test(contentType);
-            const isAttachment = /attachment/.test(contentDisp);
+const parseFetchSuccess = (response) => {
+    return new Promise((resolve, reject) => {
+        const contentType = response.headers.get('content-type');
+        const contentDisp = response.headers.get('content-disposition');
+        const isJson = /(application|text)\/json/.test(contentType);
+        const isTurtle = /text\/turtle/.test(contentType);
+        const isAttachment = /attachment/.test(contentDisp);
 
-            if (! response.ok) {
-                if (isJson) {
-                    throw response.json();
-                }
-                throw Error(messageTranslation['unknown_response']);
-            }
-
-            if (isAttachment) {
-                response.blob().then(blob => {
-                    resolve(blob);
-                });
-                return;
-            }
-
+        if (!response.ok) {
             if (isJson) {
-                response.json().then(json => {
-                    if (! json.success) {
-                        throw new Error();
-                    }
-                    resolve(json.data);
-                });
-                return;
+                throw response.json();
             }
-        },
-        xcatch: (errorResponse) => {
-            // is thrown json
-            if (errorResponse && errorResponse.then) {
-                errorResponse.then(errJson => {
-                    return reject(errJson.errorMsg || JSON.stringify(errJson));
-                });
-            } else {
-                return reject(messageTranslation[errorResponse] || errorResponse);
-            }
+            throw Error(messageTranslation['unknown_response']);
         }
-    }
+        else if (isAttachment) {
+            response.blob().then(blob => {
+                resolve(blob);
+            });
+        }
+        else if (isJson) {
+            response.json().then(json => {
+                if (!json.success) {
+                    throw new Error();
+                }
+                resolve(json.data);
+            });
+        }
+        else if (isTurtle) {
+            const graph = rdflib.graph();
+
+            response.text()
+                .then(text => {
+                    rdflib.parse(text, graph, response.url);
+                    resolve({
+                        graph,
+                        url: response.url,
+                        text
+                    });
+                });
+        }
+        else {
+            resolve(response);
+        }
+    });
+};
+
+const handleFetchError = (errorResponse) => {
+    return new Promise((resolve, reject) => {
+        // is thrown json
+        if (errorResponse && errorResponse.then) {
+            errorResponse.then(errJson => {
+                return reject(errJson.errorMsg || JSON.stringify(errJson));
+            });
+        } else {
+            return reject(messageTranslation[errorResponse] || errorResponse);
+        }
+    });
 }
 
 /**
@@ -73,11 +83,10 @@ const fixPath = (path) => {
  */
 export const getFileList = (path) => {
     path = fixPath(path);
-    return new Promise((resolve, reject) => {
-        return API.list(path)
-            .then(handleFetch(resolve, reject).xthen)
-            .catch(handleFetch(resolve, reject).xcatch)
-    })
+    return API.list(path)
+        .then(parseFetchSuccess)
+        .then(({ graph, url }) => folderUtils.getFolderItems(graph, url))
+        .catch(handleFetchError)
 };
 
 /**
@@ -87,11 +96,9 @@ export const getFileList = (path) => {
  */
 export const getFileBody = (path, filename) => {
     path = fixPath(path + '/' + filename);
-    return new Promise((resolve, reject) => {
-        return API.getFileContent(path)
-            .then(handleFetch(resolve, reject).xthen)
-            .catch(handleFetch(resolve, reject).xcatch)
-    })
+    return API.getFileContent(path)
+        .then(parseFetchSuccess)
+        .catch(handleFetchError)
 };
 
 
@@ -101,14 +108,10 @@ export const getFileBody = (path, filename) => {
  * @returns {Object}
  */
 export const renameItem = (path, filename, newFileName) => {
-    const oldPath = fixPath(path + '/' + filename);
-    const newPath = fixPath(path + '/' + newFileName);
-
-    return new Promise((resolve, reject) => {
-        return API.rename(oldPath, newPath)
-            .then(handleFetch(resolve, reject).xthen)
-            .catch(handleFetch(resolve, reject).xcatch)
-    })
+    path = fixPath(path);
+    return API.rename(path, filename, newFileName)
+        .then(parseFetchSuccess)
+        .catch(handleFetchError)
 };
 
 /**
@@ -119,73 +122,64 @@ export const renameItem = (path, filename, newFileName) => {
  */
 export const createFolder = (path, folder) => {
     path = fixPath(path);
-    return new Promise((resolve, reject) => {
-        if (! (folder || '').trim()) {
-            return reject('Invalid folder name');
-        }
-        return API.createDirectory(path, folder)
-            .then(handleFetch(resolve, reject).xthen)
-            .catch(handleFetch(resolve, reject).xcatch)
-    })
+    if (!(folder || '').trim()) {
+        return Promise.reject('Invalid folder name');
+    }
+    return API.createDirectory(path, folder)
+        .then(parseFetchSuccess)
+        .catch(handleFetchError)
 };
 
 /**
  * Wrap API response for remove file or folder
  * @param {String} path
  * @param {Array} filenames
- * @param {Boolean} recursive
  * @returns {Object}
  */
-export const removeItems = (path, filenames, recursive = true) => {
+export const removeItems = (path, filenames) => {
     path = fixPath(path);
-    return new Promise((resolve, reject) => {
-        if (! filenames.length) {
-            return reject('No files to remove');
-        }
-        return API.remove(path, filenames, recursive)
-            .then(handleFetch(resolve, reject).xthen)
-            .catch(handleFetch(resolve, reject).xcatch)
-    })
+    if (!filenames.length) {
+        return Promise.reject('No files to remove');
+    }
+    return API.remove(path, filenames)
+        .then(parseFetchSuccess)
+        .catch(handleFetchError)
 };
 
 /**
  * Wrap API response for move file or folder
  * @param {String} path
+ * @param {String} destination
  * @param {Array} filenames
- * @param {Boolean} recursive
  * @returns {Object}
  */
 export const moveItems = (path, destination, filenames) => {
     path = fixPath(path);
     destination = fixPath(destination);
-    return new Promise((resolve, reject) => {
-        if (! filenames.length) {
-            return reject('No files to move');
-        }
-        return API.move(path, destination, filenames)
-            .then(handleFetch(resolve, reject).xthen)
-            .catch(handleFetch(resolve, reject).xcatch)
-    })
+    if (!filenames.length) {
+        return Promise.reject('No files to move');
+    }
+    return API.move(path, destination, filenames)
+        .then(parseFetchSuccess)
+        .catch(handleFetchError)
 };
 
 /**
  * Wrap API response for copy file or folder
  * @param {String} path
+ * @param {String} destination
  * @param {Array} filenames
- * @param {Boolean} recursive
  * @returns {Object}
  */
 export const copyItems = (path, destination, filenames) => {
     path = fixPath(path);
     destination = fixPath(destination);
-    return new Promise((resolve, reject) => {
-        if (! filenames.length) {
-            return reject('No files to copy');
-        }
-        return API.copy(path, destination, filenames)
-            .then(handleFetch(resolve, reject).xthen)
-            .catch(handleFetch(resolve, reject).xcatch)
-    })
+    if (!filenames.length) {
+        return Promise.reject('No files to copy');
+    }
+    return API.copy(path, destination, filenames)
+        .then(parseFetchSuccess)
+        .catch(handleFetchError)
 };
 
 /**
@@ -197,14 +191,12 @@ export const copyItems = (path, destination, filenames) => {
 export const uploadFiles = (path, fileList) => {
     path = fixPath(path);
 
-    return new Promise((resolve, reject) => {
-        if (! fileList.length) {
-            return reject('No files to upload');
-        }
-        return API.upload(path, fileList)
-            .then(handleFetch(resolve, reject).xthen)
-            .catch(handleFetch(resolve, reject).xcatch)
-    })
+    if (!fileList.length) {
+        return Promise.reject('No files to upload');
+    }
+    return API.upload(path, fileList)
+        .then(parseFetchSuccess)
+        .catch(handleFetchError)
 };
 
 /**
@@ -217,7 +209,7 @@ export const getActionsByFile = (file, acts = []) => {
         acts.push('open');
 
         typeof file.compressible !== 'undefined' ?
-            file.compressible && acts.push('compress'):
+            file.compressible && acts.push('compress') :
             acts.push('compress');
     }
 
@@ -226,11 +218,11 @@ export const getActionsByFile = (file, acts = []) => {
         config.isImageFilePattern.test(file.name) && acts.push('open');
 
         typeof file.editable !== 'undefined' ?
-            file.editable && acts.push('edit'):
+            file.editable && acts.push('edit') :
             config.isEditableFilePattern.test(file.name) && acts.push('edit');
-        
+
         typeof file.extractable !== 'undefined' ?
-            file.extractable && acts.push('extract'):
+            file.extractable && acts.push('extract') :
             config.isExtractableFilePattern.test(file.name) && acts.push('extract');
 
         acts.push('copy');
