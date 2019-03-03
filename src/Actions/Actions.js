@@ -179,14 +179,8 @@ export const renameFolder = (folderName, newFolderName) => (dispatch, getState) 
 export const downloadFile = (fileName) => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
-    APIHandler.getFileBody(path.join('/'), fileName).then(blob => {
-        // TODO workaround large files disables ui for long time
-        const blobUrl = window.URL.createObjectURL(blob);
-        let tempLink = window.document.createElement('a');
-        tempLink.href = blobUrl;
-        tempLink.setAttribute('download', fileName);
-        tempLink.click();
-        window.URL.revokeObjectURL(blobUrl);
+    APIHandler.getFileBody(path.join('/'), fileName).then(file => {
+        promptDownload(file, fileName);
         dispatch(setLoading(false));
     }).catch(r => {
         dispatch({
@@ -196,6 +190,24 @@ export const downloadFile = (fileName) => (dispatch, getState) => {
         dispatch(setLoading(false));
     });
 };
+
+// code from https://stackoverflow.com/a/30832210/6548154
+function promptDownload(file, fileName) {
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+        window.navigator.msSaveOrOpenBlob(file, fileName);
+    else { // Others
+        const a = document.createElement("a");
+        const url = URL.createObjectURL(file);
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);  
+        }, 0);
+    }
+}
 
 /**
  * Request API to get file content then dispatch defined events
