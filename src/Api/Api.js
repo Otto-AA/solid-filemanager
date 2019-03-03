@@ -39,15 +39,44 @@ export function getFileContent(path) {
 /**
  * Fetch API to remove a file or folder
  * @param {String} path
- * @param {Array} filenames
+ * @param {Array} itemNames
  * @returns {Object}
  */
-export function remove(path, filenames) {
-    const baseUrl = config.host + path;
-    const promises = filenames.map(filename => fileClient.deleteFile(`${baseUrl}/${filename}`));
-    return Promise.all(promises)
+export function remove(path, itemNames) {
+    return Promise.all(itemNames.map(itemName => removeItem(path, itemName)))
         .then(() => new Response());
 };
+
+
+function removeItem(path, itemName) {
+    const url = `${config.host}${path}/${itemName}`;
+
+    return fileClient.deleteFile(url)
+        .then(response => {
+            if (response === 'OK') {
+                return new Response();
+            }
+            if (response.includes('409 (Conflict)')) {
+                return removeFolder(path, itemName);
+            }
+            throw response;
+        });
+}
+
+async function removeFolder(path, folderName) {
+    const folderPath = `${path}/${folderName}`;
+    const url = `${config.host}${folderPath}`;
+
+    const { files, folders } = await fileClient.readFolder(url);
+    const promises = [
+        ...files.map(({ name }) => removeItem(folderPath, name)),
+        ...folders.map(({ name }) => removeFolder(folderPath, name))
+    ];
+    await Promise.all(promises);
+    await fileClient.deleteFolder(url);
+
+    return new Response();
+}
 
 /**
  * Fetch API to move files
@@ -62,18 +91,15 @@ export function move(path, destination, filenames) {
 };
 
 /**
- * Fetch API to rename files
+ * Fetch API to rename a file
  * @param {String} path
- * @param {Array} filenames
+ * @param {String} from
+ * @param {String} to
  * @returns {Object}
  */
-export function renameFile(path, filename, newFileName) {
-    const from = `${config.host}${path}/${filename}`;
-    const to = `${config.host}${path}/${newFileName}`;
-
-    return fileClient.copyFile(from, to)
-        .then(() => new Promise((resolve) => setTimeout(resolve, 5000)))
-        .then(() => fileClient.deleteFile(from))
+export function renameFile(path, from, to) {
+    return copyFile(path, from, path, to)
+        .then(() => removeItem(path, from))
         .then(() => new Response());
 };
 
@@ -85,31 +111,62 @@ export function renameFile(path, filename, newFileName) {
  * @returns {Object}
  */
 export function renameFolder(path, folderName, newFolderName) {
-    const from = `${config.host}${path}/${folderName}`;
-    const to = `${config.host}${path}/${newFolderName}`;
-
-    return createDirectory(path, newFolderName)
-        .then(() => fileClient.copyFolder(from, to))
-        .then(() => new Promise((resolve) => setTimeout(resolve, 5000)))
-        .then(() => fileClient.deleteFolder(from)) // TODO: Make recurisve folder deletion
+    return copyFolder(path, folderName, path, newFolderName)
+        .then(() => removeFolder(path, folderName))
         .then(() => new Response());
 };
 
 /**
  * Fetch API to copy files
  * @param {String} path
- * @param {Array} filenames
+ * @param {Array} itemNames
  * @param {Boolean} recursive
  * @returns {Object}
  */
-export function copy(path, destination, filenames) {
-    const baseUrl = config.host + path;
-    const baseNewUrl = config.host + destination;
+export async function copy(path, destination, itemNames) {
+    const originFolderUrl = config.host + path;
 
-    const promises = filenames.map(filename => fileClient.copyFile(`${baseUrl}/${filename}`, `${baseNewUrl}/${filename}`));
-    return Promise.all(promises)
-        .then(() => new Response());
+    let { files, folders } = await fileClient.readFolder(originFolderUrl);
+
+    files = files.filter(({ name }) => itemNames.includes(name));
+    folders = folders.filter(({ name }) => itemNames.includes(name));
+
+    const promises = [
+        ...files.map(({ name }) => copyFile(path, name, destination, name)),
+        ...folders.map(({ name }) => copyFolder(path, name, destination, name))
+    ];
+
+    await Promise.all(promises);
+    return new Response();
 };
+
+
+async function copyFile(originPath, originName, destinationPath, destinationName) {
+    const from = `${config.host}${originPath}/${originName}`;
+    const to = `${config.host}${destinationPath}/${destinationName}`;
+
+    const fileResponse = await solidAuth.fetch(from);
+    const blob = await fileResponse.blob();
+    return solidAuth.fetch(to, {
+        method: 'PUT',
+        body: blob
+    });
+}
+
+async function copyFolder(originPath, originName, destinationPath, destinationName) {
+    const from = `${config.host}${originPath}/${originName}`;
+
+    // TODO: Combine these two promises for better performance
+    await createDirectory(destinationPath, destinationName);
+    const { files, folders } = await fileClient.readFolder(from);
+
+    const promises = [
+        ...files.map(({ name }) => copyFile(`${originPath}/${originName}`, name, `${destinationPath}/${destinationName}`, name)),
+        ...folders.map(({ name }) => copyFolder(`${originPath}/${originName}`, name, `${destinationPath}/${destinationName}`, name))
+    ];
+
+    await Promise.all(promises);
+}
 
 /**
  * Fetch API to copy files
