@@ -14,7 +14,8 @@ class FileUploader extends Component {
         const { fileUploadList, handleSelectedFiles } = this.props;
         const styles = {
             inputfile: {
-                display: 'none'
+                // TODO: Change this to display none as soon, as the label button works
+                // display: 'none'
             }, inputreset: {
                 display: fileUploadList.length ? 'inline-flex' : 'none'
             }
@@ -24,9 +25,9 @@ class FileUploader extends Component {
             <div>
                 <label htmlFor="button-file">
                     <input style={styles.inputfile} id="button-file" ref="inputfile" multiple type="file" onChange={handleSelectedFiles} />
-                    <Button component="span" variant="contained" color="primary">
+                    {/*<Button component="span" variant="contained" color="primary">
                         Select Files
-                    </Button>
+                    </Button>*/}
                 </label>
 
                 <Button style={styles.inputreset} component="span" type="reset" onClick={this.handleReset.bind(this)}>
