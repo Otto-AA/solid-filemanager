@@ -67,13 +67,31 @@ export function move(path, destination, filenames) {
  * @param {Array} filenames
  * @returns {Object}
  */
-export function rename(path, filename, newFileName) {
+export function renameFile(path, filename, newFileName) {
     const from = `${config.host}${path}/${filename}`;
     const to = `${config.host}${path}/${newFileName}`;
 
     return fileClient.copyFile(from, to)
         .then(() => new Promise((resolve) => setTimeout(resolve, 5000)))
         .then(() => fileClient.deleteFile(from))
+        .then(() => new Response());
+};
+
+
+/**
+ * Fetch API to rename files
+ * @param {String} path
+ * @param {Array} filenames
+ * @returns {Object}
+ */
+export function renameFolder(path, folderName, newFolderName) {
+    const from = `${config.host}${path}/${folderName}`;
+    const to = `${config.host}${path}/${newFolderName}`;
+
+    return createDirectory(path, newFolderName)
+        .then(() => fileClient.copyFolder(from, to))
+        .then(() => new Promise((resolve) => setTimeout(resolve, 5000)))
+        .then(() => fileClient.deleteFolder(from)) // TODO: Make recurisve folder deletion
         .then(() => new Response());
 };
 

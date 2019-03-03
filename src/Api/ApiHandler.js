@@ -11,10 +11,10 @@ const messageTranslation = {
 const parseFetchSuccess = (response) => {
     return new Promise((resolve, reject) => {
         const contentType = response.headers.get('content-type');
-        const contentDisp = response.headers.get('content-disposition');
+        // const contentDisp = response.headers.get('content-disposition');
         const isJson = /(application|text)\/json/.test(contentType);
         const isTurtle = /text\/turtle/.test(contentType);
-        const isAttachment = /attachment/.test(contentDisp);
+        // const isAttachment = /attachment/.test(contentDisp);
 
         if (!response.ok) {
             if (isJson) {
@@ -103,9 +103,22 @@ export const getFileBody = (path, filename) => {
  * @param {String} path
  * @returns {Object}
  */
-export const renameItem = (path, filename, newFileName) => {
+export const renameFile = (path, filename, newFileName) => {
     path = fixPath(path);
-    return API.rename(path, filename, newFileName)
+    return API.renameFile(path, filename, newFileName)
+        .then(parseFetchSuccess)
+        .catch(handleFetchError)
+};
+
+
+/**
+ * Wrap API response for retrive file content
+ * @param {String} path
+ * @returns {Object}
+ */
+export const renameFolder = (path, folderName, newFolderName) => {
+    path = fixPath(path);
+    return API.renameFolder(path, folderName, newFolderName)
         .then(parseFetchSuccess)
         .catch(handleFetchError)
 };

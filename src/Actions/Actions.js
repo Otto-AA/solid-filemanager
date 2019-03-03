@@ -133,10 +133,32 @@ export const getFileContent = (fileName) => (dispatch, getState) => {
  * @param {String} fileName
  * @returns {Function}
  */
-export const renameItem = (fileName, newFileName) => (dispatch, getState) => {
+export const renameFile = (fileName, newFileName) => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
-    APIHandler.renameItem(path.join('/'), fileName, newFileName).then(blob => {
+    APIHandler.renameFile(path.join('/'), fileName, newFileName).then(blob => {
+        dispatch(setVisibleDialogRename(false));
+        dispatch(setLoading(false));
+        dispatch(refreshFileList());
+    }).catch(r => {
+        dispatch({
+            type: 'SET_ERROR_MSG',
+            value: r.toString()
+        });
+        dispatch(setLoading(false));
+    });
+};
+
+/**
+ * Request API to rename file then dispatch defined events
+ * @param {String} folderName
+ * @param {String} newFolderName
+ * @returns {Function}
+ */
+export const renameFolder = (folderName, newFolderName) => (dispatch, getState) => {
+    const { path } = getState();
+    dispatch(setLoading(true));
+    APIHandler.renameFolder(path.join('/'), folderName, newFolderName).then(blob => {
         dispatch(setVisibleDialogRename(false));
         dispatch(setLoading(false));
         dispatch(refreshFileList());
