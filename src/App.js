@@ -48,7 +48,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         init: () => {
-            dispatch(refreshFileList());
+            // dispatch(refreshFileList());
         },
 
         handleHideContextMenu: (event) => {
