@@ -216,6 +216,7 @@ export const uploadFiles = (path, fileList) => {
 export const getActionsByFile = (file, acts = []) => {
     if (file.type === 'dir') {
         acts.push('open');
+        acts.push('openInNewTab');
 
         typeof file.compressible !== 'undefined' ?
             file.compressible && acts.push('compress') :
@@ -225,6 +226,7 @@ export const getActionsByFile = (file, acts = []) => {
     if (file.type === 'file') {
         acts.push('download');
         config.isImageFilePattern.test(file.name) && acts.push('open');
+        acts.push('openInNewTab');
 
         typeof file.editable !== 'undefined' ?
             file.editable && acts.push('edit') :

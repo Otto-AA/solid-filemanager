@@ -209,6 +209,14 @@ function promptDownload(file, fileName) {
     }
 }
 
+
+export const openInNewTab = (fileName) => (dispatch, getState) => {
+    const { path } = getState();
+    const url = `${config.host}/${path.length ? (path.join('/') + '/') : ''}${fileName}`;
+    window.open(url, '_blank');
+};
+
+
 /**
  * Request API to get file content then dispatch defined events
  * @param {String} fileName

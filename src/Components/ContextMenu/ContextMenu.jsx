@@ -10,6 +10,7 @@ import CopyAction from './ContextMenuActions/CopyAction.jsx';
 import EditAction from './ContextMenuActions/EditAction.jsx';
 import RenameAction from './ContextMenuActions/RenameAction.jsx';
 import DownloadAction from './ContextMenuActions/DownloadAction.jsx';
+import OpenInNewTab from './ContextMenuActions/OpenInNewTab.jsx';
 
 class ContextMenu extends Component {
 
@@ -20,12 +21,15 @@ class ContextMenu extends Component {
             if (act === 'open') {
                 component = <OpenAction key={key} />;
             }
+            if (act === 'openInNewTab') {
+                component = <OpenInNewTab key={key} />;
+            }
             if (act === 'edit') {
                 component = <EditAction key={key} />;
             }
             if (act === 'copy') {
                 component = <CopyAction key={key} />;
-            }            
+            }
             if (act === 'move') {
                 component = <MoveAction key={key} />;
             }
@@ -42,18 +46,18 @@ class ContextMenu extends Component {
         });
 
         return (
-            <div> 
-                <Menu 
+            <div>
+                <Menu
                     anchorReference="anchorPosition"
                     anchorPosition={{ top: y, left: x }}
                     transformOrigin={{
                         vertical: 'top',
                         horizontal: 'left',
                     }}
-                    open={visible} 
-                    onClose={ () => {} } 
-                    PaperProps={{ style: {width: 170} }}>
-                    { actionsComp }
+                    open={visible}
+                    onClose={() => { }}
+                    PaperProps={{ style: { width: 190 } }}>
+                    {actionsComp}
                 </Menu>
             </div>
         );
