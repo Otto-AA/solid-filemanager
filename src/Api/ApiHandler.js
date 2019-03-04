@@ -233,7 +233,6 @@ export const updateTextFile = (path, fileName, content) => {
 export const getActionsByFile = (file, acts = []) => {
     if (file.type === 'dir') {
         acts.push('open');
-        acts.push('openInNewTab');
 
         typeof file.compressible !== 'undefined' ?
             file.compressible && acts.push('compress') :
@@ -243,7 +242,6 @@ export const getActionsByFile = (file, acts = []) => {
     if (file.type === 'file') {
         acts.push('download');
         config.isImageFilePattern.test(file.name) && acts.push('open');
-        acts.push('openInNewTab');
 
         typeof file.editable !== 'undefined' ?
             file.editable && acts.push('edit') :
@@ -254,6 +252,7 @@ export const getActionsByFile = (file, acts = []) => {
             config.isExtractableFilePattern.test(file.name) && acts.push('extract');
     }
 
+    acts.push('openInNewTab');
     acts.push('copy');
     acts.push('move');
     acts.push('rename');
@@ -277,6 +276,7 @@ export const getActionsByMultipleFiles = (files, acts = []) => {
 
     if (files.length > 1) {
         acts.splice(acts.indexOf('open'), acts.indexOf('open') >= 0);
+        acts.splice(acts.indexOf('openInNewTab'), acts.indexOf('openInNewTab') >= 0);
         acts.splice(acts.indexOf('edit'), acts.indexOf('edit') >= 0);
         acts.splice(acts.indexOf('compress'), acts.indexOf('compress') >= 0);
         acts.splice(acts.indexOf('download'), acts.indexOf('download') >= 0);
