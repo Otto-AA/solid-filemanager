@@ -6,7 +6,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import { connect } from 'react-redux';
-import { setVisibleDialogEdit } from '../../../Actions/Actions.js';
+import { setVisibleDialogEdit, uploadTextFile } from '../../../Actions/Actions.js';
 
 class FormDialog extends Component {
 
@@ -38,8 +38,16 @@ class FormDialog extends Component {
         }
     }
 
+    handleSave (event) {
+        console.log(`handleSave`);
+        const content = event.currentTarget.form.querySelector('textarea').value;
+
+        console.log(content);
+        this.props.handleSave(event)(this.props.fileName, this.state.value, this.props.type);
+    }
+
     render() {
-        const { handleClose, handleSave, open } = this.props;
+        const { handleClose, open } = this.props;
         const textAreaStyle = {
             width: '100%',
             minHeight: '300px'
@@ -47,24 +55,26 @@ class FormDialog extends Component {
         const textArea = <textarea style={textAreaStyle} defaultValue={this.state.content || ''} />;
 
         return (
-          <div>
-            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-edit" fullWidth={true} maxWidth={'sm'}>
-              <DialogTitle id="form-dialog-edit">Editing file </DialogTitle>
-              <DialogContent>
-                  <DialogContentText>
-                    { this.state.loading ? 'Loading...' : textArea }
-                  </DialogContentText>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleClose} color="primary" type="button">
-                    Close
-                </Button>
-                <Button color="primary" onClick={handleSave} type="submit">
-                    Update
-                </Button>
-              </DialogActions>
-            </Dialog>
-          </div>
+            <div>
+              <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-edit" fullWidth={true} maxWidth={'sm'}>
+                <form>
+                  <DialogTitle id="form-dialog-edit">Editing file </DialogTitle>
+                  <DialogContent>
+                    <DialogContentText>
+                      {this.state.loading ? 'Loading...' : textArea}
+                    </DialogContentText>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={handleClose} color="primary" type="button">
+                      Close
+                    </Button>
+                    <Button color="primary" onClick={this.handleSave.bind(this)} type="submit">
+                      Update
+                    </Button>
+                  </DialogActions>
+                </form>
+              </Dialog>
+            </div>
         );
     }
 }
@@ -72,6 +82,7 @@ class FormDialog extends Component {
 const mapStateToProps = (state) => {
     return {
         open: state.visibleDialogEdit,
+        fileName: state.selectedFiles.length ? state.selectedFiles[0].name : '',
         blobUrl: state.fileContentBlobUrl
     };
 };
@@ -84,7 +95,11 @@ const mapDispatchToProps = (dispatch, ownProps) => {
         handleOpen: (event) => {
             dispatch(setVisibleDialogEdit(true));
         },
-        handleSave: (event) => {
+        handleSave: (event) => (fileName, content) => {
+            console.log(fileName);
+            console.log(content);
+            event.preventDefault();
+            dispatch(uploadTextFile(fileName, content));
         }
     };
 };

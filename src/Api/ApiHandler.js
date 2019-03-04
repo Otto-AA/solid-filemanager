@@ -209,6 +209,22 @@ export const uploadFiles = (path, fileList) => {
 };
 
 /**
+ * Wrap API response for uploading a text file
+ * @param {String} path
+ * @param {String} fileName
+ * @param {String} content
+ * @returns {Object}
+ */
+export const uploadTextFile = (path, fileName, content) => {
+    path = fixPath(path);
+
+    return API.uploadTextFile(path, fileName, content)
+        .then(parseFetchSuccess)
+        .catch(handleFetchError);
+};
+
+
+/**
  * Calculate available actions for a file
  * @param {Object} file
  * @returns {Array<String>}

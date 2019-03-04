@@ -169,15 +169,28 @@ async function copyFolder(originPath, originName, destinationPath, destinationNa
 }
 
 /**
- * Fetch API to copy files
+ * Fetch API to upload files
  * @param {String} path
  * @param {Object<FileList>} fileList
  * @returns {Object}
  */
-export function upload(path, fileList, formData = new FormData()) {
+export function upload(path, fileList) {
     const baseUrl = config.host + path;
 
     const promises = Array.from(fileList).map(file => fileClient.updateFile(`${baseUrl}/${file.name}`, file));
     return Promise.all(promises)
         .then(() => new Response());
 };
+
+/**
+ * Fetch API to upload a text
+ * @param {String} path
+ * @param {String} fileName
+ * @param {String} content
+ * @returns {Object} 
+*/
+export function uploadTextFile(path, fileName, content) {
+    const url = `${config.host}${path}/${fileName}`;
+    return fileClient.updateFile(url, content)
+        .then(() => new Response());
+}

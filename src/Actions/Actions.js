@@ -59,6 +59,23 @@ export const uploadFiles = (fileList) => (dispatch, getState) => {
     });
 };
 
+
+export const uploadTextFile = (fileName, content) => (dispatch, getState) => {
+    const { path } = getState();
+    dispatch(setLoading(true));
+
+    APIHandler.uploadTextFile(path.join('/'), fileName, content).then(r => {
+        dispatch(setLoading(false));
+        dispatch(refreshFileList());
+    }).catch(r => {
+        dispatch({
+            type: 'SET_ERROR_MSG',
+            value: r.toString()
+        });
+        dispatch(setLoading(false));
+    });
+}
+
 /**
  * Request API to get file list for the selected path then refresh UI
  * @returns {Function}
