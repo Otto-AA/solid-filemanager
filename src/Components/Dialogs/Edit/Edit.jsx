@@ -39,11 +39,10 @@ class FormDialog extends Component {
     }
 
     handleSave (event) {
-        console.log(`handleSave`);
+        event.preventDefault();
         const content = event.currentTarget.form.querySelector('textarea').value;
 
-        console.log(content);
-        this.props.handleSave(event)(this.props.fileName, this.state.value, this.props.type);
+        this.props.handleSave(event)(this.props.fileName, content);
     }
 
     render() {
@@ -96,9 +95,10 @@ const mapDispatchToProps = (dispatch, ownProps) => {
             dispatch(setVisibleDialogEdit(true));
         },
         handleSave: (event) => (fileName, content) => {
+            console.group('handleSave');
             console.log(fileName);
             console.log(content);
-            event.preventDefault();
+            console.groupEnd();
             dispatch(updateTextFile(fileName, content));
         }
     };

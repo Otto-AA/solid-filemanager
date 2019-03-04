@@ -194,6 +194,7 @@ export function updateTextFile(path, fileName, content) {
     console.group('updateTextFile');
     console.log(`url: ${url}`);
     console.log(`content: ${content}`);
+    console.groupEnd();
     return fileClient.updateFile(url, content)
         .then(() => new Response());
 }
