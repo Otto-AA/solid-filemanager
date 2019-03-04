@@ -2,10 +2,7 @@ import * as APIHandler from '../Api/ApiHandler.js';
 import * as solidAuth from 'solid-auth-client';
 import config from '../config.js';
 
-/**
- * Request API to get file list for the selected path then refresh UI
- * @returns {Function}
- */
+
 export const solidLogin = () => (dispatch, getState) => {
     dispatch(setLoading(true));
 
@@ -32,6 +29,23 @@ async function solidPopupLogin() {
     }
     return(session.webId);
 }
+
+
+export const solidLogout = () => (dispatch, getState) => {
+    dispatch(setLoading(true));
+
+    solidAuth.logout().then(() => {
+        dispatch(setVisibleDialogSolidLogout(false));
+        dispatch(setVisibleDialogSolidLogin(true));
+        dispatch(setLoading(false));
+    }).catch(r => {
+        dispatch({
+            type: 'SET_ERROR_MSG',
+            value: r.toString()
+        });
+        dispatch(setLoading(false));
+    });
+};
 
 
 /**
@@ -560,6 +574,13 @@ export const setLoadingSublist = (value) => {
 export const setVisibleDialogSolidLogin = (visible) => {
     return {
         type: 'SET_VISIBLE_DIALOG_SOLID_LOGIN',
+        value: !!visible
+    };
+};
+
+export const setVisibleDialogSolidLogout = (visible) => {
+    return {
+        type: 'SET_VISIBLE_DIALOG_SOLID_LOGOUT',
         value: !!visible
     };
 };

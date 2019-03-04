@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import CreateFolderAction from '../ContextMenu/ContextMenuActions/CreateFolderAction.jsx';
 import CreateFileAction from '../ContextMenu/ContextMenuActions/CreateFileAction.jsx';
 import UploadFileAction from '../ContextMenu/ContextMenuActions/UploadFileAction.jsx';
+import SolidLogoutAction from '../ContextMenu/ContextMenuActions/SolidLogoutAction.jsx';
 
 class ThreeDotsMenu extends React.Component {
   state = {
@@ -36,6 +37,7 @@ class ThreeDotsMenu extends React.Component {
           <CreateFolderAction handleClose={this.handleClose} />
           <CreateFileAction handleClose={this.handleClose} />
           <UploadFileAction handleClose={this.handleClose} />
+          <SolidLogoutAction handleClose={this.handleClose} />
         </Menu>
       </div>
     );

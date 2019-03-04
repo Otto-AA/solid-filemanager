@@ -1,5 +1,6 @@
 import React from 'react';
-import DialogSolid from './SolidLogin/SolidLogin.jsx';
+import DialogSolidLogin from './SolidLogin/SolidLogin.jsx';
+import DialogSolidLogout from './SolidLogout/SolidLogout.jsx';
 import DialogContent from './Content/Content.jsx';
 import DialogEdit from './Edit/Edit.jsx';
 import DialogCreateFolder from './CreateFolder/CreateFolder.jsx';
@@ -12,7 +13,8 @@ import DialogUploadFile from './UploadFile/UploadFile.jsx';
 function Dialogs(props) {
     return (
         <div className="Dialogs">
-            <DialogSolid />
+            <DialogSolidLogin />
+            <DialogSolidLogout />
             <DialogContent />
             <DialogEdit />
             <DialogCreateFolder />
