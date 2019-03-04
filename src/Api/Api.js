@@ -189,8 +189,11 @@ export function upload(path, fileList) {
  * @param {String} content
  * @returns {Object} 
 */
-export function uploadTextFile(path, fileName, content) {
+export function updateTextFile(path, fileName, content) {
     const url = `${config.host}${path}/${fileName}`;
+    console.group('updateTextFile');
+    console.log(`url: ${url}`);
+    console.log(`content: ${content}`);
     return fileClient.updateFile(url, content)
         .then(() => new Response());
 }

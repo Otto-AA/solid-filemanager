@@ -6,7 +6,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import { connect } from 'react-redux';
-import { setVisibleDialogEdit, uploadTextFile } from '../../../Actions/Actions.js';
+import { setVisibleDialogEdit, updateTextFile } from '../../../Actions/Actions.js';
 
 class FormDialog extends Component {
 
@@ -99,7 +99,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
             console.log(fileName);
             console.log(content);
             event.preventDefault();
-            dispatch(uploadTextFile(fileName, content));
+            dispatch(updateTextFile(fileName, content));
         }
     };
 };

@@ -215,10 +215,10 @@ export const uploadFiles = (path, fileList) => {
  * @param {String} content
  * @returns {Object}
  */
-export const uploadTextFile = (path, fileName, content) => {
+export const updateTextFile = (path, fileName, content) => {
     path = fixPath(path);
 
-    return API.uploadTextFile(path, fileName, content)
+    return API.updateTextFile(path, fileName, content)
         .then(parseFetchSuccess)
         .catch(handleFetchError);
 };

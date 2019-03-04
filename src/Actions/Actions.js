@@ -60,13 +60,14 @@ export const uploadFiles = (fileList) => (dispatch, getState) => {
 };
 
 
-export const uploadTextFile = (fileName, content) => (dispatch, getState) => {
+export const updateTextFile = (fileName, content) => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
 
-    APIHandler.uploadTextFile(path.join('/'), fileName, content).then(r => {
-        dispatch(setLoading(false));
+    APIHandler.updateTextFile(path.join('/'), fileName, content).then(r => {
+        dispatch(setVisibleDialogEdit(false));
         dispatch(refreshFileList());
+        dispatch(setLoading(false));
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
