@@ -252,10 +252,9 @@ export const getActionsByFile = (file, acts = []) => {
         typeof file.extractable !== 'undefined' ?
             file.extractable && acts.push('extract') :
             config.isExtractableFilePattern.test(file.name) && acts.push('extract');
-
-        acts.push('copy');
     }
 
+    acts.push('copy');
     acts.push('move');
     acts.push('rename');
     acts.push('perms');
@@ -265,14 +264,14 @@ export const getActionsByFile = (file, acts = []) => {
 }
 
 /**
- * Calculate available actions for selected files, excluding non coincidences
+ * Calculate available actions for selected files, only leaving common actions
  * @param {Array<Object>} files
  * @returns {Array<String>}
  */
 export const getActionsByMultipleFiles = (files, acts = []) => {
     files.forEach(file => {
         const fileActs = getActionsByFile(file);
-        // intersects previous actions with the following to leave only coincidences
+        // intersects previous actions with the following to leave only common actions
         acts = acts.length ? acts.filter(value => -1 !== fileActs.indexOf(value)) : fileActs;
     });
 
