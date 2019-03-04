@@ -60,6 +60,24 @@ export const uploadFiles = (fileList) => (dispatch, getState) => {
 };
 
 
+export const createFile = (fileName) => (dispatch, getState) => {
+    const { path } = getState();
+    dispatch(setLoading(true));
+
+    APIHandler.updateTextFile(path.join('/'), fileName, '').then(r => {
+        dispatch(setVisibleDialogCreateFile(false));
+        dispatch(refreshFileList());
+
+        APIHandler.getFileList(path.join('/')).then(fileList => {
+            const file = fileList.find(file => file.name === fileName || file.name === encodeURI(fileName));
+            dispatch(setSelectedFiles([file]));
+            dispatch(setLoading(false));
+            dispatch(setVisibleDialogEdit(true));
+        });
+    });
+};
+
+
 export const updateTextFile = (fileName, content) => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
@@ -549,6 +567,13 @@ export const setVisibleDialogSolidLogin = (visible) => {
 export const setVisibleDialogCreateFolder = (visible) => {
     return {
         type: 'SET_VISIBLE_DIALOG_CREATE_FOLDER',
+        value: !!visible
+    };
+};
+
+export const setVisibleDialogCreateFile = (visible) => {
+    return {
+        type: 'SET_VISIBLE_DIALOG_CREATE_FILE',
         value: !!visible
     };
 };

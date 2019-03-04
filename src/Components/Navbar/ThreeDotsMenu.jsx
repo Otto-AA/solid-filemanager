@@ -4,6 +4,7 @@ import IconButton from '@material-ui/core/IconButton';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { connect } from 'react-redux';
 import CreateFolderAction from '../ContextMenu/ContextMenuActions/CreateFolderAction.jsx';
+import CreateFileAction from '../ContextMenu/ContextMenuActions/CreateFileAction.jsx';
 import UploadFileAction from '../ContextMenu/ContextMenuActions/UploadFileAction.jsx';
 
 class ThreeDotsMenu extends React.Component {
@@ -33,6 +34,7 @@ class ThreeDotsMenu extends React.Component {
 
         <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={this.handleClose}>
           <CreateFolderAction handleClose={this.handleClose} />
+          <CreateFileAction handleClose={this.handleClose} />
           <UploadFileAction handleClose={this.handleClose} />
         </Menu>
       </div>

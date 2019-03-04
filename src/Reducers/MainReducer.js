@@ -15,6 +15,7 @@ export const defaultState = {
     errorMsg: null,
     visibleDialogSolidLogin: true,
     visibleDialogCreateFolder: false,
+    visibleDialogCreateFile: false,
     visibleDialogUploadFile: false,
     visibleDialogContent: false,
     visibleDialogEdit: false,
@@ -118,6 +119,11 @@ const MainReducer = (state = defaultState, action) => {
         case 'SET_VISIBLE_DIALOG_CREATE_FOLDER':
             return Object.assign({}, state, { 
                 visibleDialogCreateFolder: !!action.value
+            });
+
+        case 'SET_VISIBLE_DIALOG_CREATE_FILE':
+            return Object.assign({}, state, { 
+                visibleDialogCreateFile: !!action.value
             });
             
         case 'SET_VISIBLE_DIALOG_UPLOAD_FILE':
