@@ -18,22 +18,22 @@ const parseFetchSuccess = (response) => {
 
         if (!response.ok) {
             if (isJson) {
-                throw response.json();
+                return reject(response.json());
             }
-            throw Error(messageTranslation['unknown_response']);
+            return reject(messageTranslation['unknown_response']);
         }
         else if (isJson) {
-            response.json().then(json => {
+            return response.json().then(json => {
                 if (!json.success) {
-                    throw new Error();
+                    return reject();
                 }
                 resolve(json.data);
-            });
+            }).catch(reject);
         }
         else if (isTurtle) {
             const graph = rdflib.graph();
 
-            response.text()
+            return response.text()
                 .then(text => {
                     rdflib.parse(text, graph, response.url);
                     resolve({
@@ -41,7 +41,8 @@ const parseFetchSuccess = (response) => {
                         url: response.url,
                         text
                     });
-                });
+                })
+                .catch(reject);
         }
         else {
             resolve(response);
@@ -85,16 +86,16 @@ export const getFileList = (path) => {
 };
 
 /**
- * Wrap API response for retrive file content
+ * Wrap API response for retrieving file content
  * @param {String} path
+ * @param {String} filename
  * @returns {Object}
  */
 export const getFileBody = (path, filename) => {
     path = fixPath(path + '/' + filename);
     return API.getFileContent(path)
-        .then(parseFetchSuccess)
         .then(response => response.blob())
-        .catch(handleFetchError)
+        .catch(handleFetchError);
 };
 
 
