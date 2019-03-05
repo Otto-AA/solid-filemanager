@@ -33,6 +33,11 @@ export const solidLogout = () => (dispatch, getState) => {
     dispatch(setLoading(true));
 
     solidAuth.logout().then(() => {
+        // TODO: Add reset method
+        dispatch(setPath([]));
+        dispatch(setPathSublist([]));
+        dispatch(setFileList([]));
+        dispatch(setSelectedFiles([]));
         dispatch(setVisibleDialogSolidLogout(false));
         dispatch(setVisibleDialogSolidLogin(true));
         dispatch(setLoading(false));
