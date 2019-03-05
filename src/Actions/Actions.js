@@ -7,10 +7,8 @@ export const solidLogin = () => (dispatch, getState) => {
     dispatch(setLoading(true));
 
     solidPopupLogin().then(webId => {
-        const origin = (new URL(webId)).origin;
-        config.host = origin;
-        dispatch(setVisibleDialogSolidLogin(false));
-        dispatch(refreshFileList());
+        dispatch(setWebId(webId));
+        dispatch(setIsLoggedIn(true));
         dispatch(setLoading(false));
     }).catch(r => {
         dispatch({
@@ -117,7 +115,6 @@ export const refreshFileList = () => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
     dispatch(setSelectedFiles([]));
-
     APIHandler.getFileList(path.join('/')).then(r => {
         dispatch(setLoading(false));
         dispatch(setFileList(r));
@@ -262,7 +259,7 @@ function promptDownload(file, fileName) {
 
 export const openInNewTab = (fileName) => (dispatch, getState) => {
     const { path } = getState();
-    const url = `${config.host}/${path.length ? (path.join('/') + '/') : ''}${fileName}`;
+    const url = `${config.getHost()}/${path.length ? (path.join('/') + '/') : ''}${fileName}`;
     window.open(url, '_blank');
 };
 
@@ -467,6 +464,20 @@ export const setHost = (host) => {
     return {
         type: 'SET_HOST',
         value: host
+    };
+};
+
+export const setIsLoggedIn = (isLoggedIn) => {
+    return {
+        type: 'SET_IS_LOGGED_IN',
+        value: isLoggedIn
+    };
+};
+
+export const setWebId = (webId) => {
+    return {
+        type: 'SET_WEB_ID',
+        value: webId
     };
 };
 

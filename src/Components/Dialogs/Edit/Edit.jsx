@@ -95,10 +95,6 @@ const mapDispatchToProps = (dispatch, ownProps) => {
             dispatch(setVisibleDialogEdit(true));
         },
         handleSave: (event) => (fileName, content) => {
-            console.group('handleSave');
-            console.log(fileName);
-            console.log(content);
-            console.groupEnd();
             dispatch(updateTextFile(fileName, content));
         }
     };

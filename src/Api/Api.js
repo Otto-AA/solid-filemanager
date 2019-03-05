@@ -8,7 +8,7 @@ import * as fileClient from 'solid-file-client';
  * @returns {Object}
  */
 export function list(path) {
-    const url = config.host + path;
+    const url = config.getHost() + path;
     return solidAuth.fetch(url);
 };
 
@@ -19,7 +19,7 @@ export function list(path) {
  * @returns {Object}
  */
 export function createDirectory(path, directory) {
-    const url = `${config.host}${path}/${directory}`;
+    const url = `${config.getHost()}${path}/${directory}`;
     return fileClient.createFolder(url)
         .then(() => new Response());
 };
@@ -31,7 +31,7 @@ export function createDirectory(path, directory) {
  * @returns {Object}
  */
 export function getFileContent(path) {
-    const url = config.host + path;
+    const url = config.getHost() + path;
     return solidAuth.fetch(url);
 };
 
@@ -49,7 +49,7 @@ export function remove(path, itemNames) {
 
 
 function removeItem(path, itemName) {
-    const url = `${config.host}${path}/${itemName}`;
+    const url = `${config.getHost()}${path}/${itemName}`;
 
     return fileClient.deleteFile(url)
         .then(response => {
@@ -65,7 +65,7 @@ function removeItem(path, itemName) {
 
 async function removeFolder(path, folderName) {
     const folderPath = `${path}/${folderName}`;
-    const url = `${config.host}${folderPath}`;
+    const url = `${config.getHost()}${folderPath}`;
 
     const { files, folders } = await fileClient.readFolder(url);
     const promises = [
@@ -124,7 +124,7 @@ export function renameFolder(path, folderName, newFolderName) {
  * @returns {Object}
  */
 export async function copy(path, destination, itemNames) {
-    const originFolderUrl = config.host + path;
+    const originFolderUrl = config.getHost() + path;
 
     let { files, folders } = await fileClient.readFolder(originFolderUrl);
 
@@ -142,8 +142,8 @@ export async function copy(path, destination, itemNames) {
 
 
 async function copyFile(originPath, originName, destinationPath, destinationName) {
-    const from = `${config.host}${originPath}/${originName}`;
-    const to = `${config.host}${destinationPath}/${destinationName}`;
+    const from = `${config.getHost()}${originPath}/${originName}`;
+    const to = `${config.getHost()}${destinationPath}/${destinationName}`;
 
     const fileResponse = await solidAuth.fetch(from);
     const blob = await fileResponse.blob();
@@ -154,7 +154,7 @@ async function copyFile(originPath, originName, destinationPath, destinationName
 }
 
 async function copyFolder(originPath, originName, destinationPath, destinationName) {
-    const from = `${config.host}${originPath}/${originName}`;
+    const from = `${config.getHost()}${originPath}/${originName}`;
 
     // TODO: Combine these two promises for better performance
     await createDirectory(destinationPath, destinationName);
@@ -175,7 +175,7 @@ async function copyFolder(originPath, originName, destinationPath, destinationNa
  * @returns {Object}
  */
 export function upload(path, fileList) {
-    const baseUrl = config.host + path;
+    const baseUrl = config.getHost() + path;
 
     const promises = Array.from(fileList).map(file => fileClient.updateFile(`${baseUrl}/${file.name}`, file));
     return Promise.all(promises)
@@ -190,11 +190,7 @@ export function upload(path, fileList) {
  * @returns {Object} 
 */
 export function updateTextFile(path, fileName, content) {
-    const url = `${config.host}${path}/${fileName}`;
-    console.group('updateTextFile');
-    console.log(`url: ${url}`);
-    console.log(`content: ${content}`);
-    console.groupEnd();
+    const url = `${config.getHost()}${path}/${fileName}`;
     return fileClient.updateFile(url, content)
         .then(() => new Response());
 }

@@ -2,6 +2,8 @@ export const defaultState = {
     path: [],
     pathSublist: [],
     host: null,
+    isLoggedIn: false,
+    webId: null,
     fileList: [],
     fileListSublist: [],
     fileListFilter: null,
@@ -47,6 +49,14 @@ const MainReducer = (state = defaultState, action) => {
         case 'SET_HOST':
             return Object.assign({}, state, {
                 host: action.value
+            });
+        case 'SET_IS_LOGGED_IN':
+            return Object.assign({}, state, {
+                isLoggedIn: action.value
+            });
+        case 'SET_WEB_ID':
+            return Object.assign({}, state, {
+                webId: action.value
             });
         case 'ENTER_TO_DIRECTORY':
             return Object.assign({}, state, {
