@@ -146,10 +146,13 @@ async function copyFile(originPath, originName, destinationPath, destinationName
     const to = `${config.getHost()}${destinationPath}/${destinationName}`;
 
     const fileResponse = await solidAuth.fetch(from);
-    const blob = await fileResponse.blob();
+    const content = (fileResponse.headers.get('Content-Type') === 'application/json') ?
+        await fileResponse.text()
+        : await fileResponse.blob();
+
     return solidAuth.fetch(to, {
         method: 'PUT',
-        body: blob
+        body: content
     });
 }
 
