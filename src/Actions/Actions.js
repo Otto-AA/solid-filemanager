@@ -85,8 +85,8 @@ export const createFile = (fileName) => (dispatch, getState) => {
         dispatch(setVisibleDialogCreateFile(false));
         dispatch(refreshFileList());
 
-        APIHandler.getFileList(path.join('/')).then(fileList => {
-            const file = fileList.find(file => file.name === fileName || file.name === encodeURI(fileName));
+        APIHandler.getItemList(path.join('/')).then(itemList => {
+            const file = itemList.find(item => item.name === fileName || item.name === encodeURI(fileName));
             dispatch(setSelectedFiles([file]));
             dispatch(setLoading(false));
             dispatch(setVisibleDialogEdit(true));
@@ -120,7 +120,7 @@ export const refreshFileList = () => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
     dispatch(setSelectedFiles([]));
-    APIHandler.getFileList(path.join('/')).then(r => {
+    APIHandler.getItemList(path.join('/')).then(r => {
         dispatch(setLoading(false));
         dispatch(setFileList(r));
     }).catch(r => {
@@ -143,7 +143,7 @@ export const refreshFileListSublist = () => (dispatch, getState) => {
     dispatch(setLoadingSublist(true));
     dispatch(setSelectedFolderSublist(null));
 
-    APIHandler.getFileList(pathSublist.join('/')).then(r => {
+    APIHandler.getItemList(pathSublist.join('/')).then(r => {
         dispatch(setLoadingSublist(false));
         dispatch(setFileListSublist(r));
     }).catch(r => {
@@ -168,7 +168,7 @@ export const getFileContent = (fileName) => (dispatch, getState) => {
     dispatch(setLoading(true));
     dispatch(setFileContent(null));
     dispatch(setVisibleDialogContent(true));
-    APIHandler.getFileBody(path.join('/'), fileName).then(blob => {
+    APIHandler.getFileBlob(path.join('/'), fileName).then(blob => {
         dispatch(setFileContent(blob));
         dispatch(setLoading(false));
     }).catch(r => {
@@ -231,8 +231,8 @@ export const renameFolder = (folderName, newFolderName) => (dispatch, getState) 
 export const downloadFile = (fileName) => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
-    APIHandler.getFileBody(path.join('/'), fileName).then(file => {
-        promptDownload(file, fileName);
+    APIHandler.getFileBlob(path.join('/'), fileName).then(blob => {
+        promptDownload(blob, fileName);
         dispatch(setLoading(false));
     }).catch(r => {
         dispatch({
@@ -279,7 +279,7 @@ export const getFileContentForEdit = (fileName) => (dispatch, getState) => {
     dispatch(setLoading(true));
     dispatch(setFileContent(null));
     dispatch(setVisibleDialogEdit(true));
-    APIHandler.getFileBody(path.join('/'), fileName).then(blob => {
+    APIHandler.getFileBlob(path.join('/'), fileName).then(blob => {
         dispatch(setFileContent(blob));
         dispatch(setLoading(false));
     }).catch(r => {

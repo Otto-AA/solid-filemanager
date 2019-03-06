@@ -43,11 +43,11 @@ const fixPath = (path) => {
 };
 
 /**
- * Wrap API response for retrieving file list
+ * Wrap API response for retrieving item list
  * @param {String} path
- * @returns {Object}
+ * @returns {Promise<API.FolderItems>}
  */
-export const getFileList = (path) => {
+export const getItemList = (path) => {
     path = fixPath(path);
     return API.readFolder(path)
         .then(({ files, folders }) => [...files, ...folders])
@@ -58,9 +58,9 @@ export const getFileList = (path) => {
  * Wrap API response for retrieving file content
  * @param {String} path
  * @param {String} filename
- * @returns {Object}
+ * @returns {Promise<Blob>}
  */
-export const getFileBody = (path, filename) => {
+export const getFileBlob = (path, filename) => {
     path = fixPath(path);
     return API.fetchItem(path, filename)
         .then(response => response.blob())
@@ -69,21 +69,25 @@ export const getFileBody = (path, filename) => {
 
 
 /**
- * Wrap API response for retrieve file content
+ * Wrap API response for renaming a file
  * @param {String} path
- * @returns {Object}
+ * @param {String} fileName
+ * @param {String} newFileName
+ * @returns {Promise<Response>}
  */
-export const renameFile = (path, filename, newFileName) => {
+export const renameFile = (path, fileName, newFileName) => {
     path = fixPath(path);
-    return API.renameFile(path, filename, newFileName)
+    return API.renameFile(path, fileName, newFileName)
         .catch(logFetchError)
 };
 
 
 /**
- * Wrap API response for retrive file content
+ * Wrap API response for renaming a folder
  * @param {String} path
- * @returns {Object}
+ * @param {String} folderName
+ * @param {String} newFolderName
+ * @returns {Promise<Response>}
  */
 export const renameFolder = (path, folderName, newFolderName) => {
     path = fixPath(path);
@@ -92,10 +96,10 @@ export const renameFolder = (path, folderName, newFolderName) => {
 };
 
 /**
- * Wrap API response for create folder
+ * Wrap API response for creating a folder
  * @param {String} path
  * @param {String} folder
- * @returns {Object}
+ * @returns {Promise<Response>}
  */
 export const createFolder = (path, folder) => {
     path = fixPath(path);
@@ -107,10 +111,10 @@ export const createFolder = (path, folder) => {
 };
 
 /**
- * Wrap API response for remove file or folder
+ * Wrap API response for removing a file or folder
  * @param {String} path
- * @param {Array} filenames
- * @returns {Object}
+ * @param {Array<String>} filenames
+ * @returns {Promise<Response>}
  */
 export const removeItems = (path, filenames) => {
     path = fixPath(path);
@@ -122,11 +126,11 @@ export const removeItems = (path, filenames) => {
 };
 
 /**
- * Wrap API response for move file or folder
+ * Wrap API response for moving a file or folder
  * @param {String} path
  * @param {String} destination
- * @param {Array} filenames
- * @returns {Object}
+ * @param {Array<String>} filenames
+ * @returns {Promise<Response>}
  */
 export const moveItems = (path, destination, filenames) => {
     path = fixPath(path);
@@ -139,11 +143,11 @@ export const moveItems = (path, destination, filenames) => {
 };
 
 /**
- * Wrap API response for copy file or folder
+ * Wrap API response for copying a file or folder
  * @param {String} path
  * @param {String} destination
- * @param {Array} filenames
- * @returns {Object}
+ * @param {Array<String>} filenames
+ * @returns {Promise<Response>}
  */
 export const copyItems = (path, destination, filenames) => {
     path = fixPath(path);
@@ -156,10 +160,10 @@ export const copyItems = (path, destination, filenames) => {
 };
 
 /**
- * Wrap API response for upload files
+ * Wrap API response for uploading files
  * @param {String} path
  * @param {Object<FileList>} fileList
- * @returns {Object}
+ * @returns {Promise<Response>}
  */
 export const uploadFiles = (path, fileList) => {
     path = fixPath(path);
@@ -176,7 +180,7 @@ export const uploadFiles = (path, fileList) => {
  * @param {String} path
  * @param {String} fileName
  * @param {String} content
- * @returns {Object}
+ * @returns {Promise<Response>}
  */
 export const updateTextFile = (path, fileName, content) => {
     path = fixPath(path);
