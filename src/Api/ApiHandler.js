@@ -1,66 +1,36 @@
 import * as API from './Api.js';
 import config from './../config.js';
-import * as rdflib from 'rdflib';
-import * as folderUtils from './folderUtils.js';
 
-const messageTranslation = {
-    'unknown_response': 'Unknown error response from connector',
-    'TypeError: Failed to fetch': 'Cannot get a response from connector.',
-};
 
-const parseFetchSuccess = (response) => {
-    return new Promise((resolve, reject) => {
-        const contentType = response.headers.get('content-type');
-        // const contentDisp = response.headers.get('content-disposition');
-        const isJson = /(application|text)\/json/.test(contentType);
-        const isTurtle = /text\/turtle/.test(contentType);
-        // const isAttachment = /attachment/.test(contentDisp);
+/**
+ * Log a fetch response error and throw it again
+ * @param {*} error 
+ */
+const logFetchError = async (error) => {
+    let errorMessage = '';
 
-        if (!response.ok) {
-            if (isJson) {
-                return reject(response.json());
-            }
-            return reject(messageTranslation['unknown_response']);
-        }
-        else if (isJson) {
-            return response.json().then(json => {
-                if (!json.success) {
-                    return reject();
-                }
-                resolve(json.data);
-            }).catch(reject);
-        }
-        else if (isTurtle) {
-            const graph = rdflib.graph();
+    console.group('handleFetchError');
+    if (error instanceof Response) {
+        errorMessage = await error.text();
 
-            return response.text()
-                .then(text => {
-                    rdflib.parse(text, graph, response.url);
-                    resolve({
-                        graph,
-                        url: response.url,
-                        text
-                    });
-                })
-                .catch(reject);
-        }
-        else {
-            resolve(response);
-        }
-    });
-};
+        console.error(`url: ${error.url}`);
+        console.error(`status: ${error.status}`);
+    }
+    else if (error instanceof Error) {
+        errorMessage = error.message;
+        console.error(error.stack);
+    }
+    else if (typeof error === 'string') {
+        errorMessage = error;
+    }
+    else {
+        errorMessage = JSON.stringify(error);
+    }
+    console.error(`errorMessage: ${errorMessage}`);
+    console.error(`error: ${error}`);
+    console.groupEnd();
 
-const handleFetchError = (errorResponse) => {
-    return new Promise((resolve, reject) => {
-        // is thrown json
-        if (errorResponse && errorResponse.then) {
-            errorResponse.then(errJson => {
-                return reject(errJson.errorMsg || JSON.stringify(errJson));
-            });
-        } else {
-            return reject(messageTranslation[errorResponse] || errorResponse);
-        }
-    });
+    throw new Error(errorMessage);
 }
 
 /**
@@ -73,95 +43,94 @@ const fixPath = (path) => {
 };
 
 /**
- * Wrap API response for retrive file liest
+ * Wrap API response for retrieving item list
  * @param {String} path
- * @returns {Object}
+ * @returns {Promise<API.FolderItems>}
  */
-export const getFileList = (path) => {
+export const getItemList = (path) => {
     path = fixPath(path);
-    return API.list(path)
-        .then(parseFetchSuccess)
-        .then(({ graph, url }) => folderUtils.getFolderItems(graph, url))
-        .catch(handleFetchError)
+    return API.readFolder(path)
+        .then(({ files, folders }) => [...files, ...folders])
+        .catch(logFetchError);
 };
 
 /**
  * Wrap API response for retrieving file content
  * @param {String} path
  * @param {String} filename
- * @returns {Object}
+ * @returns {Promise<Blob>}
  */
-export const getFileBody = (path, filename) => {
-    path = fixPath(path + '/' + filename);
-    return API.getFileContent(path)
-        .then(response => response.blob())
-        .catch(handleFetchError);
-};
-
-
-/**
- * Wrap API response for retrive file content
- * @param {String} path
- * @returns {Object}
- */
-export const renameFile = (path, filename, newFileName) => {
+export const getFileBlob = (path, filename) => {
     path = fixPath(path);
-    return API.renameFile(path, filename, newFileName)
-        .then(parseFetchSuccess)
-        .catch(handleFetchError)
+    return API.fetchItem(path, filename)
+        .then(response => response.blob())
+        .catch(logFetchError);
 };
 
 
 /**
- * Wrap API response for retrive file content
+ * Wrap API response for renaming a file
  * @param {String} path
- * @returns {Object}
+ * @param {String} fileName
+ * @param {String} newFileName
+ * @returns {Promise<Response>}
+ */
+export const renameFile = (path, fileName, newFileName) => {
+    path = fixPath(path);
+    return API.renameFile(path, fileName, newFileName)
+        .catch(logFetchError)
+};
+
+
+/**
+ * Wrap API response for renaming a folder
+ * @param {String} path
+ * @param {String} folderName
+ * @param {String} newFolderName
+ * @returns {Promise<Response>}
  */
 export const renameFolder = (path, folderName, newFolderName) => {
     path = fixPath(path);
     return API.renameFolder(path, folderName, newFolderName)
-        .then(parseFetchSuccess)
-        .catch(handleFetchError)
+        .catch(logFetchError)
 };
 
 /**
- * Wrap API response for create folder
+ * Wrap API response for creating a folder
  * @param {String} path
  * @param {String} folder
- * @returns {Object}
+ * @returns {Promise<Response>}
  */
 export const createFolder = (path, folder) => {
     path = fixPath(path);
     if (!(folder || '').trim()) {
         return Promise.reject('Invalid folder name');
     }
-    return API.createDirectory(path, folder)
-        .then(parseFetchSuccess)
-        .catch(handleFetchError)
+    return API.createFolder(path, folder)
+        .catch(logFetchError)
 };
 
 /**
- * Wrap API response for remove file or folder
+ * Wrap API response for removing a file or folder
  * @param {String} path
- * @param {Array} filenames
- * @returns {Object}
+ * @param {Array<String>} filenames
+ * @returns {Promise<Response>}
  */
 export const removeItems = (path, filenames) => {
     path = fixPath(path);
     if (!filenames.length) {
         return Promise.reject('No files to remove');
     }
-    return API.remove(path, filenames)
-        .then(parseFetchSuccess)
-        .catch(handleFetchError)
+    return API.removeItems(path, filenames)
+        .catch(logFetchError)
 };
 
 /**
- * Wrap API response for move file or folder
+ * Wrap API response for moving a file or folder
  * @param {String} path
  * @param {String} destination
- * @param {Array} filenames
- * @returns {Object}
+ * @param {Array<String>} filenames
+ * @returns {Promise<Response>}
  */
 export const moveItems = (path, destination, filenames) => {
     path = fixPath(path);
@@ -169,17 +138,16 @@ export const moveItems = (path, destination, filenames) => {
     if (!filenames.length) {
         return Promise.reject('No files to move');
     }
-    return API.move(path, destination, filenames)
-        .then(parseFetchSuccess)
-        .catch(handleFetchError)
+    return API.moveItems(path, destination, filenames)
+        .catch(logFetchError)
 };
 
 /**
- * Wrap API response for copy file or folder
+ * Wrap API response for copying a file or folder
  * @param {String} path
  * @param {String} destination
- * @param {Array} filenames
- * @returns {Object}
+ * @param {Array<String>} filenames
+ * @returns {Promise<Response>}
  */
 export const copyItems = (path, destination, filenames) => {
     path = fixPath(path);
@@ -187,16 +155,15 @@ export const copyItems = (path, destination, filenames) => {
     if (!filenames.length) {
         return Promise.reject('No files to copy');
     }
-    return API.copy(path, destination, filenames)
-        .then(parseFetchSuccess)
-        .catch(handleFetchError)
+    return API.copyItems(path, destination, filenames)
+        .catch(logFetchError)
 };
 
 /**
- * Wrap API response for upload files
+ * Wrap API response for uploading files
  * @param {String} path
  * @param {Object<FileList>} fileList
- * @returns {Object}
+ * @returns {Promise<Response>}
  */
 export const uploadFiles = (path, fileList) => {
     path = fixPath(path);
@@ -205,8 +172,7 @@ export const uploadFiles = (path, fileList) => {
         return Promise.reject('No files to upload');
     }
     return API.upload(path, fileList)
-        .then(parseFetchSuccess)
-        .catch(handleFetchError)
+        .catch(logFetchError)
 };
 
 /**
@@ -214,14 +180,13 @@ export const uploadFiles = (path, fileList) => {
  * @param {String} path
  * @param {String} fileName
  * @param {String} content
- * @returns {Object}
+ * @returns {Promise<Response>}
  */
 export const updateTextFile = (path, fileName, content) => {
     path = fixPath(path);
 
-    return API.updateTextFile(path, fileName, content)
-        .then(parseFetchSuccess)
-        .catch(handleFetchError);
+    return API.updateItem(path, fileName, content)
+        .catch(logFetchError);
 };
 
 
@@ -271,16 +236,20 @@ export const getActionsByMultipleFiles = (files, acts = []) => {
     files.forEach(file => {
         const fileActs = getActionsByFile(file);
         // intersects previous actions with the following to leave only common actions
-        acts = acts.length ? acts.filter(value => -1 !== fileActs.indexOf(value)) : fileActs;
+        acts = acts.length ?
+            acts.filter(value => -1 !== fileActs.indexOf(value)) 
+            : fileActs;
     });
 
     if (files.length > 1) {
-        acts.splice(acts.indexOf('open'), acts.indexOf('open') >= 0);
-        acts.splice(acts.indexOf('openInNewTab'), acts.indexOf('openInNewTab') >= 0);
-        acts.splice(acts.indexOf('edit'), acts.indexOf('edit') >= 0);
-        acts.splice(acts.indexOf('compress'), acts.indexOf('compress') >= 0);
-        acts.splice(acts.indexOf('download'), acts.indexOf('download') >= 0);
-        acts.splice(acts.indexOf('rename'), acts.indexOf('rename') >= 0);
+        const removeAction = name => acts.splice(acts.indexOf(name), acts.indexOf(name) > -1);
+        removeAction('open');
+        removeAction('openInNewTab');
+        removeAction('edit');
+        removeAction('compress');
+        removeAction('download');
+        removeAction('rename');
+
         acts.push('compress');
     }
     return acts;

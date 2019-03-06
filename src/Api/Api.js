@@ -1,132 +1,93 @@
 import config from './../config.js';
+import * as folderUtils from './folderUtils.js';
 import * as solidAuth from 'solid-auth-client';
-import * as fileClient from 'solid-file-client';
 
 /**
- * Fetch API to list files from directory
- * @param {String} path
- * @returns {Object}
+ * @typedef {Object} FolderItems
+ * @property {Array<{Object}>} files
+ * @property {Array<{Object}>} folders
  */
-export function list(path) {
-    const url = config.getHost() + path;
-    return solidAuth.fetch(url);
-};
+
 
 /**
- * Fetch API to create a directory
+ * Fetch API to get item
  * @param {String} path
- * @param {String} directory
- * @returns {Object}
+ * @param {String} itemName
+ * @returns {Response}
  */
-export function createDirectory(path, directory) {
-    const url = `${config.getHost()}${path}/${directory}`;
-    return fileClient.createFolder(url)
-        .then(() => new Response());
+export async function fetchItem(path, itemName = '') {
+    const url = buildUrl(path, itemName);
+    return solidAuth.fetch(url)
+        .then(assertSuccessfulResponse);
 };
 
 
 /**
- * Fetch API to get file body
+ * Fetch API to retrieve object containing a files and folders array
  * @param {String} path
- * @returns {Object}
+ * @param {String} folderName
+ * @returns {Promise<FolderItems>}
  */
-export function getFileContent(path) {
-    const url = config.getHost() + path;
-    return solidAuth.fetch(url);
-};
+export async function readFolder(path, folderName = '') {
+    const url = buildUrl(path, folderName);
 
+    const response = await fetchItem(path, folderName);
+    const folderRDF = await response.text();
+    const graph = await folderUtils.text2graph(folderRDF, url, 'text/turtle');
+    const folderItems = folderUtils.getFolderItems(graph, url);
 
-/**
- * Fetch API to remove a file or folder
- * @param {String} path
- * @param {Array} itemNames
- * @returns {Object}
- */
-export function remove(path, itemNames) {
-    return Promise.all(itemNames.map(itemName => removeItem(path, itemName)))
-        .then(() => new Response());
-};
-
-
-function removeItem(path, itemName) {
-    const url = `${config.getHost()}${path}/${itemName}`;
-
-    return fileClient.deleteFile(url)
-        .then(response => {
-            if (response === 'OK') {
-                return new Response();
-            }
-            if (response.includes('409 (Conflict)')) {
-                return removeFolder(path, itemName);
-            }
-            throw response;
-        });
+    return folderItems;
 }
 
-async function removeFolder(path, folderName) {
-    const folderPath = `${path}/${folderName}`;
-    const url = `${config.getHost()}${folderPath}`;
-
-    const { files, folders } = await fileClient.readFolder(url);
-    const promises = [
-        ...files.map(({ name }) => removeItem(folderPath, name)),
-        ...folders.map(({ name }) => removeFolder(folderPath, name))
-    ];
-    await Promise.all(promises);
-    await fileClient.deleteFolder(url);
-
-    return new Response();
-}
 
 /**
- * Fetch API to move files
+ * Fetch API to move items
  * @param {String} path
  * @param {String} destination
- * @param {Array} filenames
- * @returns {Object}
+ * @param {Array<String>} itemNames
+ * @returns {Response}
  */
-export function move(path, destination, filenames) {
-    return copy(path, destination, filenames)
-        .then(() => remove(path, filenames));
+export async function moveItems(path, destination, itemNames) {
+    await copyItems(path, destination, itemNames);
+    return removeItems(path, itemNames);
 };
+
 
 /**
  * Fetch API to rename a file
  * @param {String} path
- * @param {String} from
- * @param {String} to
- * @returns {Object}
+ * @param {String} oldName
+ * @param {String} newName
+ * @returns {Response}
  */
-export function renameFile(path, from, to) {
-    return copyFile(path, from, path, to)
-        .then(() => removeItem(path, from))
-        .then(() => new Response());
+export async function renameFile(path, oldName, newName) {
+    await copyFile(path, oldName, path, newName);
+    return removeItem(path, oldName);
 };
 
 
 /**
- * Fetch API to rename files
+ * Fetch API to rename a folder
  * @param {String} path
- * @param {Array} filenames
- * @returns {Object}
+ * @param {String} oldFolderName
+ * @param {String} newFolderName
+ * @returns {Response}
  */
-export function renameFolder(path, folderName, newFolderName) {
-    return copyFolder(path, folderName, path, newFolderName)
-        .then(() => removeFolder(path, folderName))
-        .then(() => new Response());
+export async function renameFolder(path, oldFolderName, newFolderName) {
+    await copyFolder(path, oldFolderName, path, newFolderName);
+    return removeFolderRecursively(path, oldFolderName);
 };
+
 
 /**
  * Fetch API to copy files
  * @param {String} path
+ * @param {String} destination
  * @param {Array} itemNames
- * @param {Boolean} recursive
- * @returns {Object}
+ * @returns {Response}
  */
-export async function copy(path, destination, itemNames) {
-    const originFolderUrl = config.getHost() + path;
-
-    let { files, folders } = await fileClient.readFolder(originFolderUrl);
+export async function copyItems(path, destination, itemNames) {
+    let { files, folders } = await readFolder(path);
 
     files = files.filter(({ name }) => itemNames.includes(name));
     folders = folders.filter(({ name }) => itemNames.includes(name));
@@ -141,27 +102,41 @@ export async function copy(path, destination, itemNames) {
 };
 
 
-async function copyFile(originPath, originName, destinationPath, destinationName) {
-    const from = `${config.getHost()}${originPath}/${originName}`;
-    const to = `${config.getHost()}${destinationPath}/${destinationName}`;
+/**
+ * Fetch API to copy a file
+ * @param {String} originPath
+ * @param {String} originName
+ * @param {String} destinationPath
+ * @param {String} destinationName
+ * @returns {Response}
+ */
+export async function copyFile(originPath, originName, destinationPath, destinationName) {
+    const destinationUrl = buildUrl(destinationPath, destinationName);
 
-    const fileResponse = await solidAuth.fetch(from);
-    const content = (fileResponse.headers.get('Content-Type') === 'application/json') ?
-        await fileResponse.text()
-        : await fileResponse.blob();
+    const itemResponse = await fetchItem(originPath, originName);
+    const content = (itemResponse.headers.get('Content-Type') === 'application/json') ?
+        await itemResponse.text()
+        : await itemResponse.blob();
 
-    return solidAuth.fetch(to, {
+    return solidAuth.fetch(destinationUrl, {
         method: 'PUT',
         body: content
-    });
+    }).then(assertSuccessfulResponse);
 }
 
-async function copyFolder(originPath, originName, destinationPath, destinationName) {
-    const from = `${config.getHost()}${originPath}/${originName}`;
 
+/**
+ * Fetch API to copy a folder recursively
+ * @param {String} originPath 
+ * @param {String} originName 
+ * @param {String} destinationPath 
+ * @param {String} destinationName 
+ * @return {Response}
+ */
+export async function copyFolder(originPath, originName, destinationPath, destinationName) {
     // TODO: Combine these two promises for better performance
-    await createDirectory(destinationPath, destinationName);
-    const { files, folders } = await fileClient.readFolder(from);
+    await createFolder(destinationPath, destinationName);
+    const { files, folders } = await readFolder(originPath, originName);
 
     const promises = [
         ...files.map(({ name }) => copyFile(`${originPath}/${originName}`, name, `${destinationPath}/${destinationName}`, name)),
@@ -169,31 +144,183 @@ async function copyFolder(originPath, originName, destinationPath, destinationNa
     ];
 
     await Promise.all(promises);
+    return new Response();
 }
+
 
 /**
  * Fetch API to upload files
  * @param {String} path
- * @param {Object<FileList>} fileList
- * @returns {Object}
+ * @param {FileList} fileList
+ * @returns {Response}
  */
-export function upload(path, fileList) {
-    const baseUrl = config.getHost() + path;
-
-    const promises = Array.from(fileList).map(file => fileClient.updateFile(`${baseUrl}/${file.name}`, file));
-    return Promise.all(promises)
-        .then(() => new Response());
+export async function upload(path, fileList) {
+    const promises = Array.from(fileList).map(file => updateItem(path, file.name, file));
+    await Promise.all(promises);
+    return new Response();
 };
 
+
 /**
- * Fetch API to upload a text
+ * Fetch API to create a folder
  * @param {String} path
- * @param {String} fileName
- * @param {String} content
- * @returns {Object} 
-*/
-export function updateTextFile(path, fileName, content) {
-    const url = `${config.getHost()}${path}/${fileName}`;
-    return fileClient.updateFile(url, content)
-        .then(() => new Response());
+ * @param {String} folderName
+ * @returns {Response}
+ */
+export async function createFolder(path, folderName) {
+    if (await itemExists(path, folderName))
+        return new Response();
+
+    return createItem(path, folderName, '', 'dir');
 }
+
+
+/**
+ * Fetch API to create update or create an item
+ * @param {String} path
+ * @param {String} itemName
+ * @param {String} content
+ * @param {String} contentType
+ * @returns {Response}
+ */
+export async function updateItem(path, itemName, content, contentType) {
+    await removeItem(path, itemName);
+    return createItem(path, itemName, content, contentType);
+}
+
+
+/**
+ * Fetch API to create create an item
+ * @param {String} path
+ * @param {String} itemName
+ * @param {String} content
+ * @param {String} contentType
+ * @returns {Response}
+ */
+async function createItem(path, itemName, content, contentType) {
+    const baseUrl = `${config.getHost()}${path}`;
+    const link = (contentType === 'dir') ?
+        '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"'
+        : '<http://www.w3.org/ns/ldp#Resource>; rel="type"';
+
+    const request = {
+        method: 'POST',
+        headers: {
+            link,
+            slug: itemName,
+            'Content-Type': contentType
+        },
+        body: content
+    };
+
+    return solidAuth.fetch(baseUrl, request)
+        .then(assertSuccessfulResponse);
+}
+
+
+/**
+ * Fetch API to remove multiple items
+ * @param {String} path
+ * @param {Array} itemNames
+ * @returns {Response}
+ */
+export async function removeItems(path, itemNames) {
+    await Promise.all(itemNames.map(itemName => removeItem(path, itemName)));
+    return new Response();
+};
+
+
+/**
+ * Fetch API to remove one item
+ * @param {String} path 
+ * @param {String} itemName 
+ * @returns {Response}
+ */
+export async function removeItem(path, itemName) {
+    const url = buildUrl(path, itemName);
+
+    const response = await solidAuth.fetch(url, { method: 'DELETE' });
+    if (response.status === 409) {
+        return removeFolderRecursively(path, itemName);
+    }
+    assertSuccessfulResponse(response);
+    return response;
+}
+
+
+/**
+ * Fetch API to remove contents and folder itself recursively
+ * @param {String} path 
+ * @param {String} folderName
+ * @returns {Response}
+ */
+export async function removeFolderRecursively(path, folderName) {
+    await removeFolderContents(path, folderName);
+    return removeItem(path, folderName);
+}
+
+
+/**
+ * Fetch API to remove contents of one folder recursively
+ * @param {String} path 
+ * @param {String} folderName
+ * @returns {Response}
+ */
+export async function removeFolderContents(path, folderName) {
+    const folderPath = `${path}/${folderName}`;
+
+    const { files, folders } = await readFolder(path, folderName);
+    const promises = [
+        ...files.map(({ name }) => removeItem(folderPath, name)),
+        ...folders.map(({ name }) => removeFolderRecursively(folderPath, name))
+    ];
+    await Promise.all(promises);
+    return new Response();
+}
+
+
+/**
+ * Fetch API to create update or create an item
+ * @param {String} path
+ * @param {String} itemName
+ * @returns {Promise<Boolean>}
+ */
+export async function itemExists(path, itemName) {
+    try {
+        await fetchItem(path, itemName);
+        return true;
+    }
+    catch (error) {
+        if (error instanceof Response && error.status === 404)
+            return false;
+
+        throw error;
+    }
+}
+
+
+/**
+ * Build up an url from a path relative to the storage location and an itemName
+ * @param {String} path 
+ * @param {Sting} itemName 
+ * @return {String}
+ */
+function buildUrl(path, itemName = '') {
+    let url = `${config.getHost()}${path}/${itemName}`;
+    while (url.slice(-1) === '/')
+        url = url.slice(0, -1);
+
+    return url;
+}
+
+
+/**
+ * Throw response if fetch response was unsuccessful
+ * @param {Response} response
+ * @returns {Response}
+ */
+const assertSuccessfulResponse = (response) => {
+    if (!response.ok)
+        throw response;
+    return response;
+};
