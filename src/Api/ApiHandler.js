@@ -1,7 +1,6 @@
 import * as API from './Api.js';
 import config from './../config.js';
 import * as rdflib from 'rdflib';
-import * as folderUtils from './folderUtils.js';
 
 const messageTranslation = {
     'unknown_response': 'Unknown error response from connector',
@@ -11,10 +10,8 @@ const messageTranslation = {
 const parseFetchSuccess = (response) => {
     return new Promise((resolve, reject) => {
         const contentType = response.headers.get('content-type');
-        // const contentDisp = response.headers.get('content-disposition');
         const isJson = /(application|text)\/json/.test(contentType);
         const isTurtle = /text\/turtle/.test(contentType);
-        // const isAttachment = /attachment/.test(contentDisp);
 
         if (!response.ok) {
             if (isJson) {
@@ -79,10 +76,9 @@ const fixPath = (path) => {
  */
 export const getFileList = (path) => {
     path = fixPath(path);
-    return API.list(path)
-        .then(parseFetchSuccess)
-        .then(({ graph, url }) => folderUtils.getFolderItems(graph, url))
-        .catch(handleFetchError)
+    return API.readFolder(path)
+        .then(({ files, folders }) => [...files, ...folders])
+        .catch(handleFetchError);
 };
 
 /**
@@ -92,8 +88,8 @@ export const getFileList = (path) => {
  * @returns {Object}
  */
 export const getFileBody = (path, filename) => {
-    path = fixPath(path + '/' + filename);
-    return API.getFileContent(path)
+    path = fixPath(path);
+    return API.fetchItem(path, filename)
         .then(response => response.blob())
         .catch(handleFetchError);
 };
@@ -135,7 +131,7 @@ export const createFolder = (path, folder) => {
     if (!(folder || '').trim()) {
         return Promise.reject('Invalid folder name');
     }
-    return API.createDirectory(path, folder)
+    return API.createFolder(path, folder)
         .then(parseFetchSuccess)
         .catch(handleFetchError)
 };
@@ -151,7 +147,7 @@ export const removeItems = (path, filenames) => {
     if (!filenames.length) {
         return Promise.reject('No files to remove');
     }
-    return API.remove(path, filenames)
+    return API.removeItems(path, filenames)
         .then(parseFetchSuccess)
         .catch(handleFetchError)
 };
@@ -169,7 +165,7 @@ export const moveItems = (path, destination, filenames) => {
     if (!filenames.length) {
         return Promise.reject('No files to move');
     }
-    return API.move(path, destination, filenames)
+    return API.moveItems(path, destination, filenames)
         .then(parseFetchSuccess)
         .catch(handleFetchError)
 };
@@ -187,7 +183,7 @@ export const copyItems = (path, destination, filenames) => {
     if (!filenames.length) {
         return Promise.reject('No files to copy');
     }
-    return API.copy(path, destination, filenames)
+    return API.copyItems(path, destination, filenames)
         .then(parseFetchSuccess)
         .catch(handleFetchError)
 };
@@ -219,7 +215,7 @@ export const uploadFiles = (path, fileList) => {
 export const updateTextFile = (path, fileName, content) => {
     path = fixPath(path);
 
-    return API.updateTextFile(path, fileName, content)
+    return API.updateItem(path, fileName, content)
         .then(parseFetchSuccess)
         .catch(handleFetchError);
 };
