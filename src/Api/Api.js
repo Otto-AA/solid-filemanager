@@ -8,7 +8,7 @@ import * as solidAuth from 'solid-auth-client';
  * @property {Array<{Object}>} folders
  */
 
- 
+
 /**
  * Fetch API to get item
  * @param {String} path
@@ -17,7 +17,8 @@ import * as solidAuth from 'solid-auth-client';
  */
 export async function fetchItem(path, itemName = '') {
     const url = buildUrl(path, itemName);
-    return solidAuth.fetch(url);
+    return solidAuth.fetch(url)
+        .then(assertSuccessfulResponse);
 };
 
 
@@ -47,7 +48,7 @@ export async function readFolder(path, folderName = '') {
  * @returns {Response}
  */
 export async function moveItems(path, destination, itemNames) {
-    await copyItems(path, destination, itemNames)
+    await copyItems(path, destination, itemNames);
     return removeItems(path, itemNames);
 };
 
@@ -60,7 +61,7 @@ export async function moveItems(path, destination, itemNames) {
  * @returns {Response}
  */
 export async function renameFile(path, oldName, newName) {
-    await copyFile(path, oldName, path, newName)
+    await copyFile(path, oldName, path, newName);
     return removeItem(path, oldName);
 };
 
@@ -120,7 +121,7 @@ export async function copyFile(originPath, originName, destinationPath, destinat
     return solidAuth.fetch(destinationUrl, {
         method: 'PUT',
         body: content
-    });
+    }).then(assertSuccessfulResponse);
 }
 
 
@@ -169,7 +170,7 @@ export async function upload(path, fileList) {
 export async function createFolder(path, folderName) {
     if (await itemExists(path, folderName))
         return new Response();
-    
+
     return createItem(path, folderName, '', 'dir');
 }
 
@@ -201,7 +202,7 @@ async function createItem(path, itemName, content, contentType) {
     const link = (contentType === 'dir') ?
         '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"'
         : '<http://www.w3.org/ns/ldp#Resource>; rel="type"';
-    
+
     const request = {
         method: 'POST',
         headers: {
@@ -212,7 +213,8 @@ async function createItem(path, itemName, content, contentType) {
         body: content
     };
 
-    return solidAuth.fetch(baseUrl, request);
+    return solidAuth.fetch(baseUrl, request)
+        .then(assertSuccessfulResponse);
 }
 
 
@@ -241,6 +243,7 @@ export async function removeItem(path, itemName) {
     if (response.status === 409) {
         return removeFolderRecursively(path, itemName);
     }
+    assertSuccessfulResponse(response);
     return response;
 }
 
@@ -283,8 +286,16 @@ export async function removeFolderContents(path, folderName) {
  * @returns {Promise<Boolean>}
  */
 export async function itemExists(path, itemName) {
-    const response = await fetchItem(path, itemName);
-    return response.ok;
+    try {
+        await fetchItem(path, itemName);
+        return true;
+    }
+    catch (error) {
+        if (error instanceof Response && error.status === 404)
+            return false;
+
+        throw error;
+    }
 }
 
 
@@ -301,3 +312,15 @@ function buildUrl(path, itemName = '') {
 
     return url;
 }
+
+
+/**
+ * Throw response if fetch response was unsuccessful
+ * @param {Response} response
+ * @returns {Response}
+ */
+const assertSuccessfulResponse = (response) => {
+    if (!response.ok)
+        throw response;
+    return response;
+};
