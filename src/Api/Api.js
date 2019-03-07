@@ -12,11 +12,24 @@ import * as solidAuth from 'solid-auth-client';
 /**
  * Fetch API to get item
  * @param {String} path
- * @param {String} itemName
+ * @param {String} fileName
  * @returns {Response}
  */
-export async function fetchItem(path, itemName = '') {
-    const url = buildUrl(path, itemName);
+export async function fetchFile(path, fileName = '') {
+    const url = buildFileUrl(path, fileName);
+    return solidAuth.fetch(url)
+        .then(assertSuccessfulResponse);
+};
+
+
+/**
+ * Fetch API to get folder
+ * @param {String} path
+ * @param {String} folderName
+ * @returns {Response}
+ */
+export async function fetchFolder(path, folderName = '') {
+    const url = buildFolderUrl(path, folderName);
     return solidAuth.fetch(url)
         .then(assertSuccessfulResponse);
 };
@@ -29,9 +42,9 @@ export async function fetchItem(path, itemName = '') {
  * @returns {Promise<FolderItems>}
  */
 export async function readFolder(path, folderName = '') {
-    const url = buildUrl(path, folderName);
+    const url = buildFolderUrl(path, folderName);
 
-    const response = await fetchItem(path, folderName);
+    const response = await fetchFolder(path, folderName);
     const folderRDF = await response.text();
     const graph = await folderUtils.text2graph(folderRDF, url, 'text/turtle');
     const folderItems = folderUtils.getFolderItems(graph, url);
@@ -111,12 +124,12 @@ export async function copyItems(path, destination, itemNames) {
  * @returns {Response}
  */
 export async function copyFile(originPath, originName, destinationPath, destinationName) {
-    const destinationUrl = buildUrl(destinationPath, destinationName);
+    const destinationUrl = buildFileUrl(destinationPath, destinationName);
 
-    const itemResponse = await fetchItem(originPath, originName);
-    const content = (itemResponse.headers.get('Content-Type') === 'application/json') ?
-        await itemResponse.text()
-        : await itemResponse.blob();
+    const fileResponse = await fetchFile(originPath, originName);
+    const content = (fileResponse.headers.get('Content-Type') === 'application/json') ?
+        await fileResponse.text()
+        : await fileResponse.blob();
 
     return solidAuth.fetch(destinationUrl, {
         method: 'PUT',
@@ -168,7 +181,7 @@ export async function upload(path, fileList) {
  * @returns {Response}
  */
 export async function createFolder(path, folderName) {
-    if (await itemExists(path, folderName))
+    if (await folderExists(path, folderName))
         return new Response();
 
     return createItem(path, folderName, '', 'dir');
@@ -237,11 +250,12 @@ export async function removeItems(path, itemNames) {
  * @returns {Response}
  */
 export async function removeItem(path, itemName) {
-    const url = buildUrl(path, itemName);
+    const url = buildFileUrl(path, itemName);
 
     const response = await solidAuth.fetch(url, { method: 'DELETE' });
-    if (response.status === 409) {
+    if (response.status === 409 || response.status === 301) {
         // Solid pod returns 409 if the item is a folder and is not empty
+        // Solid pod returns 301 if is attempted to read a folder url without '/' at the end (from buildFileUrl)
         return removeFolderRecursively(path, itemName);
     }
     else if (response.status === 404) {
@@ -287,14 +301,14 @@ export async function removeFolderContents(path, folderName) {
 
 
 /**
- * Fetch API to create update or create an item
+ * Fetch API to check if a folder exists
  * @param {String} path
- * @param {String} itemName
+ * @param {String} folderName
  * @returns {Promise<Boolean>}
  */
-export async function itemExists(path, itemName) {
+export async function folderExists(path, folderName) {
     try {
-        await fetchItem(path, itemName);
+        await fetchFolder(path, folderName);
         return true;
     }
     catch (error) {
@@ -307,13 +321,24 @@ export async function itemExists(path, itemName) {
 
 
 /**
- * Build up an url from a path relative to the storage location and an itemName
- * @param {String} path 
- * @param {Sting} itemName 
+ * Build up an url from a path relative to the storage location and a folder name
+ * @param {String} path
+ * @param {String} folderName
  * @return {String}
  */
-function buildUrl(path, itemName = '') {
-    let url = `${config.getHost()}${path}/${itemName}`;
+function buildFolderUrl(path, folderName = '') {
+    return buildFileUrl(path, folderName) + '/';
+}
+
+
+/**
+ * Build up an url from a path relative to the storage location and a fileName
+ * @param {String} path 
+ * @param {Sting} fileName 
+ * @return {String}
+ */
+function buildFileUrl(path, fileName = '') {
+    let url = `${config.getHost()}${path}/${fileName}`;
     while (url.slice(-1) === '/')
         url = url.slice(0, -1);
 

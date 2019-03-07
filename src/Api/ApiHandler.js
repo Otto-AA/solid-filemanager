@@ -62,7 +62,7 @@ export const getItemList = (path) => {
  */
 export const getFileBlob = (path, filename) => {
     path = fixPath(path);
-    return API.fetchItem(path, filename)
+    return API.fetchFile(path, filename)
         .then(response => response.blob())
         .catch(logFetchError);
 };
