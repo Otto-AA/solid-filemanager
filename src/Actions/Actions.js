@@ -89,7 +89,7 @@ export const createFile = (fileName) => (dispatch, getState) => {
         APIHandler.getItemList(path.join('/')).then(itemList => {
             const file = itemList.find(item => item.name === fileName || item.name === encodeURI(fileName));
             dispatch(setSelectedFiles([file]));
-            dispatch(setLoading(false));
+            dispatch(getFileContent(file.name));
             dispatch(setVisibleDialogEdit(true));
         });
     });
@@ -157,29 +157,6 @@ export const refreshFileListSublist = () => (dispatch, getState) => {
     });
 };
 
-
-/**
- * Request API to get file content then dispatch defined events
- * @param {String} fileName
- * @returns {Function}
- */
-export const getFileContent = (fileName) => (dispatch, getState) => {
-    const { path } = getState();
-
-    dispatch(setLoading(true));
-    dispatch(setFileContent(null));
-    dispatch(setVisibleDialogContent(true));
-    APIHandler.getFileBlob(path.join('/'), fileName).then(blob => {
-        dispatch(setFileContent(blob));
-        dispatch(setLoading(false));
-    }).catch(r => {
-        dispatch({
-            type: 'SET_ERROR_MSG',
-            value: r.toString()
-        });
-        dispatch(setLoading(false));
-    });
-};
 
 /**
  * Request API to rename file then dispatch defined events
@@ -275,7 +252,7 @@ export const openInNewTab = (fileName) => (dispatch, getState) => {
  * @param {String} fileName
  * @returns {Function}
  */
-export const getFileContentForEdit = (fileName) => (dispatch, getState) => {
+export const getFileContent = (fileName) => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
     dispatch(setFileContent(null));
