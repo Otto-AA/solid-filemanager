@@ -4,8 +4,6 @@ This is a file manager for solid pods, based on [this awesome react app](https:/
 
 The app is available here: https://otto-aa.github.io/solid-filemanager/build/. To use it you need to have a [solid pod](https://solid.inrupt.com/get-a-solid-pod).
 
-![alt text](./images/Screenshot.png "Demo Screenshot")
-
 ## Features
 
 - Navigation through folders
@@ -14,6 +12,8 @@ The app is available here: https://otto-aa.github.io/solid-filemanager/build/. T
 - Edit text files (txt, html, ...)
 - Download files
 - Open files in a new tab
+
+![Screenshot of the file manager](./images/Screenshot.png "Demo Screenshot")
 
 ## Installing locally
 
