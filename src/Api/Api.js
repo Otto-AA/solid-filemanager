@@ -241,10 +241,17 @@ export async function removeItem(path, itemName) {
 
     const response = await solidAuth.fetch(url, { method: 'DELETE' });
     if (response.status === 409) {
+        // Solid pod returns 409 if the item is a folder and is not empty
         return removeFolderRecursively(path, itemName);
     }
-    assertSuccessfulResponse(response);
-    return response;
+    else if (response.status === 404) {
+        // Don't throw if the item didn't exist
+        return response;
+    }
+    else {
+        assertSuccessfulResponse(response);
+        return response;
+    }
 }
 
 
