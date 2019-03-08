@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Typography from '@material-ui/core/Typography';
 import ArchiveIcon from '@material-ui/icons/Archive';
-import { zipFiles } from '../../../Actions/Actions.js';
+import { zipAndUpload } from '../../../Actions/Actions.js';
 
 function ZipAction(props) {
     const {handleClick, selectedFiles} = props;
@@ -15,7 +15,7 @@ function ZipAction(props) {
                 <ArchiveIcon />
             </ListItemIcon>
             <Typography variant="inherit">
-                Zip
+                Zip here
             </Typography>
         </MenuItem>        
     );
@@ -30,7 +30,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch, ownProps) => {
     return {
         handleClick: (event, selectedFiles) => {
-            dispatch(zipFiles(selectedFiles));
+            dispatch(zipAndUpload(selectedFiles));
         }
     };
 };

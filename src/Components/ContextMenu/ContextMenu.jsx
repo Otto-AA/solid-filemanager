@@ -33,11 +33,11 @@ class ContextMenu extends Component {
                     {acts.includes('open') && <OpenAction />}
                     {acts.includes('openInNewTab') && <OpenInNewTabAction />}
                     {acts.includes('download') && <DownloadAction />}
+                    {acts.includes('compress') && <ZipAction />}
                     {acts.includes('edit') && <EditAction />}
                     {acts.includes('copy') && <CopyAction />}
                     {acts.includes('move') && <MoveAction />}
                     {acts.includes('rename') && <RenameAction />}
-                    {acts.includes('compress') && <ZipAction />}
                     {acts.includes('remove') && <RemoveAction />}
                 </Menu>
             </div>

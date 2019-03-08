@@ -177,15 +177,18 @@ export const uploadFiles = (path, fileList) => {
 };
 
 /**
- * Wrap API response for uploading a text file
+ * Wrap API response for uploading a file
  * @param {String} path
  * @param {String} fileName
  * @param {String} content
  * @returns {Promise<Response>}
  */
-export const updateTextFile = (path, fileName, content) => {
+export const updateFile = (path, fileName, content) => {
     path = fixPath(path);
-
+    console.log(`updateFile`);
+    console.log(path);
+    console.log(fileName);
+    console.log(content);
     return API.updateItem(path, fileName, content)
         .catch(logFetchError);
 };
@@ -244,7 +247,6 @@ export const getActionsByFile = (file, acts = []) => {
     }
 
     if (file.type === 'file') {
-        acts.push('download');
         config.isImageFilePattern.test(file.name) && acts.push('open');
 
         typeof file.editable !== 'undefined' ?
@@ -257,6 +259,7 @@ export const getActionsByFile = (file, acts = []) => {
     }
 
     acts.push('openInNewTab');
+    acts.push('download');
     acts.push('copy');
     acts.push('move');
     acts.push('rename');
@@ -282,14 +285,13 @@ export const getActionsByMultipleFiles = (files, acts = []) => {
 
     if (files.length > 1) {
         const removeAction = name => acts.splice(acts.indexOf(name), acts.indexOf(name) > -1);
+        const addAction = name => acts.includes(name) || acts.push(name);
         removeAction('open');
         removeAction('openInNewTab');
         removeAction('edit');
-        removeAction('compress');
-        removeAction('download');
         removeAction('rename');
 
-        acts.push('compress');
+        addAction('compress');
     }
     return acts;
 }

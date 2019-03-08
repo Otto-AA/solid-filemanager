@@ -82,7 +82,7 @@ export const createFile = (fileName) => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
 
-    APIHandler.updateTextFile(path.join('/'), fileName, '').then(r => {
+    APIHandler.updateFile(path.join('/'), fileName, '').then(r => {
         dispatch(setVisibleDialogCreateFile(false));
         dispatch(refreshFileList());
 
@@ -100,7 +100,7 @@ export const updateTextFile = (fileName, content) => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
 
-    APIHandler.updateTextFile(path.join('/'), fileName, content).then(r => {
+    APIHandler.updateFile(path.join('/'), fileName, content).then(r => {
         dispatch(setVisibleDialogEdit(false));
         dispatch(refreshFileList());
         dispatch(setLoading(false));
@@ -202,23 +202,64 @@ export const renameFolder = (folderName, newFolderName) => (dispatch, getState) 
 };
 
 /**
- * Request API to get download file then dispatch defined events
- * @param {String} fileName
+ * Request API to download the specified items
+ * @param {Array<Object>} itemList
  * @returns {Function}
  */
-export const downloadFile = (fileName) => (dispatch, getState) => {
+export const downloadItems = (itemList) => async (dispatch, getState) => {
     const { path } = getState();
+
     dispatch(setLoading(true));
-    APIHandler.getFileBlob(path.join('/'), fileName).then(blob => {
-        promptDownload(blob, fileName);
+    try {
+        let blob;
+        let downloadName = `${itemList[0].name}.zip`;
+        if (itemList.length === 1 && itemList[0].type === 'file') {
+            blob = await APIHandler.getFileBlob(path.join('/'), itemList[0].name);
+        }
+        else {
+            const zip = await APIHandler.getAsZip(path.join('/'), itemList);
+            blob = await zip.generateAsync({ type: 'blob' });
+
+            if (itemList.length > 1)
+                downloadName = 'Archive.zip';
+        }
+
+        promptDownload(blob, downloadName);
         dispatch(setLoading(false));
-    }).catch(r => {
+    }
+    catch (e) {
         dispatch({
             type: 'SET_ERROR_MSG',
-            value: r.toString()
+            value: e.toString()
         });
         dispatch(setLoading(false));
-    });
+    }
+};
+
+/**
+ * Request API to upload the items as zip archive
+ * @param {Array<Object>} itemList
+ * @returns {Function}
+ */
+export const zipAndUpload = (itemList) => (dispatch, getState) => {
+    const { path } = getState();
+    const archiveName = (itemList.length === 1 && itemList[0].type === 'dir') ? `${itemList[0].name}.zip` : 'Archive.zip';
+
+    dispatch(setLoading(true));
+    APIHandler.getAsZip(path.join('/'), itemList)
+        .then(zip => zip.generateAsync({ type: 'blob' }))
+        .then(blob => APIHandler.updateFile(path.join('/'), archiveName, blob))
+        .then(() => {
+            dispatch(setLoading(false));
+            dispatch(refreshFileList());
+        })
+        .catch(r => {
+            dispatch({
+                type: 'SET_ERROR_MSG',
+                value: r.toString()
+            });
+            dispatch(setLoading(false));
+        });
 };
 
 // code from https://stackoverflow.com/a/30832210/6548154
@@ -364,31 +405,6 @@ export const copyItems = (files) => (dispatch, getState) => {
         dispatch(setLoading(false));
     });
 };
-
-
-/**
- * Archive files as zip and upload to pod
- * @param {Array<Object>} fileList
- * @returns {Function}
- */
-export const zipFiles = (fileList) => (dispatch, getState) => {
-    const { path } = getState();
-
-    dispatch(setLoading(true));
-    APIHandler.getAsZip(path.join('/'), fileList)
-        .then(zip => zip.generateAsync({ type: 'blob' }))
-        .then(content => {
-            const archiveName = (fileList.length === 1) ? `${fileList[0].name}.zip` : 'Archive.zip';
-            promptDownload(content, archiveName);
-            dispatch(setLoading(false));
-        }).catch(r => {
-            dispatch({
-                type: 'SET_ERROR_MSG',
-                value: r.toString()
-            });
-            dispatch(setLoading(false));
-        });
-}
 
 
 /**
