@@ -25,7 +25,7 @@ async function solidPopupLogin() {
         let popupUri = 'https://solid.community/common/popup.html';
         session = await solidAuth.popupLogin({ popupUri });
     }
-    return(session.webId);
+    return (session.webId);
 }
 
 
@@ -234,7 +234,7 @@ function promptDownload(file, fileName) {
         a.click();
         setTimeout(() => {
             document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);  
+            window.URL.revokeObjectURL(url);
         }, 0);
     }
 }
@@ -365,6 +365,32 @@ export const copyItems = (files) => (dispatch, getState) => {
     });
 };
 
+
+/**
+ * Archive files as zip and upload to pod
+ * @param {Array<Object>} fileList
+ * @returns {Function}
+ */
+export const zipFiles = (fileList) => (dispatch, getState) => {
+    const { path } = getState();
+
+    dispatch(setLoading(true));
+    APIHandler.getAsZip(path.join('/'), fileList)
+        .then(zip => zip.generateAsync({ type: 'blob' }))
+        .then(content => {
+            const archiveName = (fileList.length === 1) ? `${fileList[0].name}.zip` : 'Archive.zip';
+            promptDownload(content, archiveName);
+            dispatch(setLoading(false));
+        }).catch(r => {
+            dispatch({
+                type: 'SET_ERROR_MSG',
+                value: r.toString()
+            });
+            dispatch(setLoading(false));
+        });
+}
+
+
 /**
  * This handles multiple selection by using shift key
  * @param {Object} lastFile
@@ -397,7 +423,7 @@ export const setSelectedFileFromLastTo = (lastFile) => (dispatch, getState) => {
 export const initSubList = () => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setSelectedFolderSublist(null));
-    dispatch(setFileListSublist([]));    
+    dispatch(setFileListSublist([]));
     dispatch(setPathSublist([...path]));
     dispatch(refreshFileListSublist());
 };
@@ -636,21 +662,21 @@ export const setVisibleDialogEdit = (visible) => {
 };
 
 export const setFileContent = (blob) => {
-   return {
+    return {
         type: 'SET_FILE_CONTENT',
         value: blob
     };
 };
 
 export const setFileUploadProgress = (percentage) => {
-   return {
+    return {
         type: 'SET_FILE_UPLOAD_PROGRESS',
         value: percentage
     };
 };
 
 export const setFileUploadList = (files) => {
-   return {
+    return {
         type: 'SET_FILE_UPLOAD_LIST',
         value: files
     };

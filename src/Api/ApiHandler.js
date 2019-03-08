@@ -1,5 +1,6 @@
 import * as API from './Api.js';
 import config from './../config.js';
+import * as JSZip from 'jszip';
 
 
 /**
@@ -188,6 +189,44 @@ export const updateTextFile = (path, fileName, content) => {
     return API.updateItem(path, fileName, content)
         .catch(logFetchError);
 };
+
+/**
+ * Wrap API response for zipping multiple items
+ * @param {String} path
+ * @param {Array<API.FolderItems>} itemList
+ * @returns {Promise<Object>}
+ */
+export const getAsZip = (path, itemList) => {
+    path = fixPath(path);
+    const zip = new JSZip();
+
+    return addItemsToZip(zip, path, itemList)
+        .then(() => zip);
+}
+
+/**
+ * Add items to a zip object recursively
+ * @param {Object} zip
+ * @param {String} path
+ * @param {Array<API.FolderItems>} itemList
+ * @returns {Promise<Object>}
+ */
+const addItemsToZip = (zip, path, itemList) => {
+    const promises = itemList.map(async item => {
+        if (item.type === 'dir') {
+            const zipFolder = zip.folder(item.name);
+            const folderPath = `${path}/${item.name}`;
+            const folderItems = await getItemList(folderPath);
+            return addItemsToZip(zipFolder, folderPath, folderItems);
+        }
+        else if (item.type === 'file') {
+            const blob = await getFileBlob(path, item.name);
+            return zip.file(item.name, blob, { binary: true });
+        }
+    });
+
+    return Promise.all(promises);
+}
 
 
 /**
