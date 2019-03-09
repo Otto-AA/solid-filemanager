@@ -1,5 +1,6 @@
 import * as API from './Api.js';
 import config from './../config.js';
+import * as JSZip from 'jszip';
 
 
 /**
@@ -176,17 +177,111 @@ export const uploadFiles = (path, fileList) => {
 };
 
 /**
- * Wrap API response for uploading a text file
+ * Wrap API response for uploading a file
  * @param {String} path
  * @param {String} fileName
- * @param {String} content
+ * @param {Blob} content
  * @returns {Promise<Response>}
  */
-export const updateTextFile = (path, fileName, content) => {
+export const updateFile = (path, fileName, content) => {
     path = fixPath(path);
-
     return API.updateItem(path, fileName, content)
         .catch(logFetchError);
+};
+
+/**
+ * Wrap API response for zipping multiple items
+ * @param {String} path
+ * @param {Array<API.FolderItems>} itemList
+ * @returns {Promise<Object>}
+ */
+export const getAsZip = (path, itemList) => {
+    path = fixPath(path);
+    const zip = new JSZip();
+
+    return addItemsToZip(zip, path, itemList)
+        .then(() => zip);
+}
+
+/**
+ * Add items to a zip object recursively
+ * @param {Object} zip
+ * @param {String} path
+ * @param {Array<API.FolderItems>} itemList
+ * @returns {Promise<Object>}
+ */
+const addItemsToZip = (zip, path, itemList) => {
+    const promises = itemList.map(async item => {
+        if (item.type === 'dir') {
+            const zipFolder = zip.folder(item.name);
+            const folderPath = `${path}/${item.name}`;
+            const folderItems = await getItemList(folderPath);
+            return addItemsToZip(zipFolder, folderPath, folderItems);
+        }
+        else if (item.type === 'file') {
+            const blob = await getFileBlob(path, item.name);
+            return zip.file(item.name, blob, { binary: true });
+        }
+    });
+
+    return Promise.all(promises);
+}
+
+/**
+ * Wrap API response for extracting a zip archive
+ * @param {String} path
+ * @param {String} destination
+ * @param {String} fileName
+ */
+export const extractZipArchive = async (path, destination = path, fileName) => {
+    const blob = await getFileBlob(path, fileName);
+    const zip = await JSZip.loadAsync(blob);
+
+    return uploadExtractedZipArchive(zip, destination);
+};
+
+/**
+ * Recursively upload all files and folders from an extracted zip archive
+ * @param {Object} zip 
+ * @param {String} destination 
+ * @param {String} curFolder 
+ */
+async function uploadExtractedZipArchive(zip, destination, curFolder = '') {
+    const promises = getItemsInZipFolder(zip, curFolder)
+        .map(async item => {
+            const relativePath = item.name;
+            const itemName = getItemNameFromPath(relativePath);
+            const path = getParentPathFromPath(`${destination}/${relativePath}`);
+
+            if (item.dir) {
+                await createFolder(path, itemName);
+                return uploadExtractedZipArchive(zip, destination, relativePath);
+            }
+            else {
+                const blob = await item.async('blob');
+                return updateFile(path, itemName, blob);
+            }
+        });
+
+    return Promise.all(promises);
+};
+
+function getItemsInZipFolder(zip, folderPath) {
+    return Object.keys(zip.files)
+        .filter(fileName => {
+            // Only items in the current folder and subfolders
+            const relativePath = fileName.slice(folderPath.length, fileName.length);
+            if (!relativePath || fileName.slice(0, folderPath.length) !== folderPath)
+                return false;
+            
+            // No items from subfolders
+            if (relativePath.includes('/') && relativePath.slice(0, -1).includes('/'))
+                return false;
+            
+            console.log(`found in folder: ${fileName}`);
+            return true;
+        })
+        .map(key => zip.files[key]);
 };
 
 
@@ -205,7 +300,6 @@ export const getActionsByFile = (file, acts = []) => {
     }
 
     if (file.type === 'file') {
-        acts.push('download');
         config.isImageFilePattern.test(file.name) && acts.push('open');
 
         typeof file.editable !== 'undefined' ?
@@ -218,6 +312,7 @@ export const getActionsByFile = (file, acts = []) => {
     }
 
     acts.push('openInNewTab');
+    acts.push('download');
     acts.push('copy');
     acts.push('move');
     acts.push('rename');
@@ -243,14 +338,13 @@ export const getActionsByMultipleFiles = (files, acts = []) => {
 
     if (files.length > 1) {
         const removeAction = name => acts.splice(acts.indexOf(name), acts.indexOf(name) > -1);
+        const addAction = name => acts.includes(name) || acts.push(name);
         removeAction('open');
         removeAction('openInNewTab');
         removeAction('edit');
-        removeAction('compress');
-        removeAction('download');
         removeAction('rename');
 
-        acts.push('compress');
+        addAction('compress');
     }
     return acts;
 }
@@ -264,3 +358,15 @@ export const getHumanFileSize = (bytes) => {
     const e = (Math.log(bytes) / Math.log(1e3)) | 0;
     return +(bytes / Math.pow(1e3, e)).toFixed(2) + ' ' + ('kMGTPEZY'[e - 1] || '') + 'B';
 };
+
+
+function getItemNameFromPath(path) {
+    path = path.endsWith('/') ? path.slice(0, -1) : path;
+    return path.substr(path.lastIndexOf('/') + 1);
+}
+
+function getParentPathFromPath(path) {
+    path = path.endsWith('/') ? path.slice(0, -1) : path;
+    path = path.substr(0, path.lastIndexOf('/'));
+    return path;
+}

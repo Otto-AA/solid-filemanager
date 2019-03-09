@@ -1,13 +1,13 @@
 {
   "main.css": "/solid-filemanager/build/static/css/main.5ad03d98.chunk.css",
-  "main.js": "/solid-filemanager/build/static/js/main.3a35a7c7.chunk.js",
-  "main.js.map": "/solid-filemanager/build/static/js/main.3a35a7c7.chunk.js.map",
+  "main.js": "/solid-filemanager/build/static/js/main.d2ac8e15.chunk.js",
+  "main.js.map": "/solid-filemanager/build/static/js/main.d2ac8e15.chunk.js.map",
   "runtime~main.js": "/solid-filemanager/build/static/js/runtime~main.858ab442.js",
   "runtime~main.js.map": "/solid-filemanager/build/static/js/runtime~main.858ab442.js.map",
-  "static/js/2.7acef894.chunk.js": "/solid-filemanager/build/static/js/2.7acef894.chunk.js",
-  "static/js/2.7acef894.chunk.js.map": "/solid-filemanager/build/static/js/2.7acef894.chunk.js.map",
+  "static/js/2.45516df3.chunk.js": "/solid-filemanager/build/static/js/2.45516df3.chunk.js",
+  "static/js/2.45516df3.chunk.js.map": "/solid-filemanager/build/static/js/2.45516df3.chunk.js.map",
   "index.html": "/solid-filemanager/build/index.html",
-  "precache-manifest.b8f0452fd7dc42396519643a44d4362d.js": "/solid-filemanager/build/precache-manifest.b8f0452fd7dc42396519643a44d4362d.js",
+  "precache-manifest.5efdd8cb40acd3d9a066a50a5f931f88.js": "/solid-filemanager/build/precache-manifest.5efdd8cb40acd3d9a066a50a5f931f88.js",
   "service-worker.js": "/solid-filemanager/build/service-worker.js",
   "static/css/main.5ad03d98.chunk.css.map": "/solid-filemanager/build/static/css/main.5ad03d98.chunk.css.map"
 }

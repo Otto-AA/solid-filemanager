@@ -9,6 +9,8 @@ import MoveAction from './ContextMenuActions/MoveAction.jsx';
 import CopyAction from './ContextMenuActions/CopyAction.jsx';
 import EditAction from './ContextMenuActions/EditAction.jsx';
 import RenameAction from './ContextMenuActions/RenameAction.jsx';
+import ZipAction from './ContextMenuActions/ZipAction.jsx';
+import ExtractAction from './ContextMenuActions/ExtractAction.jsx';
 import DownloadAction from './ContextMenuActions/DownloadAction.jsx';
 import OpenInNewTabAction from './ContextMenuActions/OpenInNewTabAction.jsx';
 
@@ -32,6 +34,8 @@ class ContextMenu extends Component {
                     {acts.includes('open') && <OpenAction />}
                     {acts.includes('openInNewTab') && <OpenInNewTabAction />}
                     {acts.includes('download') && <DownloadAction />}
+                    {acts.includes('compress') && <ZipAction />}
+                    {acts.includes('extract') && <ExtractAction />}
                     {acts.includes('edit') && <EditAction />}
                     {acts.includes('copy') && <CopyAction />}
                     {acts.includes('move') && <MoveAction />}

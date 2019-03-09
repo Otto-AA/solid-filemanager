@@ -25,7 +25,7 @@ async function solidPopupLogin() {
         let popupUri = 'https://solid.community/common/popup.html';
         session = await solidAuth.popupLogin({ popupUri });
     }
-    return(session.webId);
+    return (session.webId);
 }
 
 
@@ -82,7 +82,7 @@ export const createFile = (fileName) => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
 
-    APIHandler.updateTextFile(path.join('/'), fileName, '').then(r => {
+    APIHandler.updateFile(path.join('/'), fileName, '').then(r => {
         dispatch(setVisibleDialogCreateFile(false));
         dispatch(refreshFileList());
 
@@ -100,7 +100,7 @@ export const updateTextFile = (fileName, content) => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
 
-    APIHandler.updateTextFile(path.join('/'), fileName, content).then(r => {
+    APIHandler.updateFile(path.join('/'), fileName, content).then(r => {
         dispatch(setVisibleDialogEdit(false));
         dispatch(refreshFileList());
         dispatch(setLoading(false));
@@ -202,16 +202,78 @@ export const renameFolder = (folderName, newFolderName) => (dispatch, getState) 
 };
 
 /**
- * Request API to get download file then dispatch defined events
+ * Request API to download the specified items
+ * @param {Array<Object>} itemList
+ * @returns {Function}
+ */
+export const downloadItems = (itemList) => async (dispatch, getState) => {
+    const { path } = getState();
+
+    dispatch(setLoading(true));
+    try {
+        let blob;
+        let downloadName = `${itemList[0].name}.zip`;
+        if (itemList.length === 1 && itemList[0].type === 'file') {
+            blob = await APIHandler.getFileBlob(path.join('/'), itemList[0].name);
+        }
+        else {
+            const zip = await APIHandler.getAsZip(path.join('/'), itemList);
+            blob = await zip.generateAsync({ type: 'blob' });
+
+            if (itemList.length > 1)
+                downloadName = 'Archive.zip';
+        }
+
+        promptDownload(blob, downloadName);
+        dispatch(setLoading(false));
+    }
+    catch (e) {
+        dispatch({
+            type: 'SET_ERROR_MSG',
+            value: e.toString()
+        });
+        dispatch(setLoading(false));
+    }
+};
+
+/**
+ * Request API to upload the items as zip archive
+ * @param {Array<Object>} itemList
+ * @returns {Function}
+ */
+export const zipAndUpload = (itemList) => (dispatch, getState) => {
+    const { path } = getState();
+    const archiveName = (itemList.length === 1 && itemList[0].type === 'dir') ? `${itemList[0].name}.zip` : 'Archive.zip';
+
+    dispatch(setLoading(true));
+    APIHandler.getAsZip(path.join('/'), itemList)
+        .then(zip => zip.generateAsync({ type: 'blob' }))
+        .then(blob => APIHandler.updateFile(path.join('/'), archiveName, blob))
+        .then(() => {
+            dispatch(setLoading(false));
+            dispatch(refreshFileList());
+        })
+        .catch(r => {
+            dispatch({
+                type: 'SET_ERROR_MSG',
+                value: r.toString()
+            });
+            dispatch(setLoading(false));
+        });
+};
+
+/**
+ * Request API for extracting a zip archive
  * @param {String} fileName
  * @returns {Function}
  */
-export const downloadFile = (fileName) => (dispatch, getState) => {
+export const extractZipFile = (fileName) => (dispatch, getState) => {
     const { path } = getState();
+
     dispatch(setLoading(true));
-    APIHandler.getFileBlob(path.join('/'), fileName).then(blob => {
-        promptDownload(blob, fileName);
+    APIHandler.extractZipArchive(path.join('/'), path.join('/'), fileName).then(r => {
         dispatch(setLoading(false));
+        dispatch(refreshFileList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -234,7 +296,7 @@ function promptDownload(file, fileName) {
         a.click();
         setTimeout(() => {
             document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);  
+            window.URL.revokeObjectURL(url);
         }, 0);
     }
 }
@@ -365,6 +427,7 @@ export const copyItems = (files) => (dispatch, getState) => {
     });
 };
 
+
 /**
  * This handles multiple selection by using shift key
  * @param {Object} lastFile
@@ -397,7 +460,7 @@ export const setSelectedFileFromLastTo = (lastFile) => (dispatch, getState) => {
 export const initSubList = () => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setSelectedFolderSublist(null));
-    dispatch(setFileListSublist([]));    
+    dispatch(setFileListSublist([]));
     dispatch(setPathSublist([...path]));
     dispatch(refreshFileListSublist());
 };
@@ -636,21 +699,21 @@ export const setVisibleDialogEdit = (visible) => {
 };
 
 export const setFileContent = (blob) => {
-   return {
+    return {
         type: 'SET_FILE_CONTENT',
         value: blob
     };
 };
 
 export const setFileUploadProgress = (percentage) => {
-   return {
+    return {
         type: 'SET_FILE_UPLOAD_PROGRESS',
         value: percentage
     };
 };
 
 export const setFileUploadList = (files) => {
-   return {
+    return {
         type: 'SET_FILE_UPLOAD_LIST',
         value: files
     };
