@@ -262,6 +262,27 @@ export const zipAndUpload = (itemList) => (dispatch, getState) => {
         });
 };
 
+/**
+ * Request API for extracting a zip archive
+ * @param {String} fileName
+ * @returns {Function}
+ */
+export const extractZipFile = (fileName) => (dispatch, getState) => {
+    const { path } = getState();
+
+    dispatch(setLoading(true));
+    APIHandler.extractZipArchive(path.join('/'), path.join('/'), fileName).then(r => {
+        dispatch(setLoading(false));
+        dispatch(refreshFileList());
+    }).catch(r => {
+        dispatch({
+            type: 'SET_ERROR_MSG',
+            value: r.toString()
+        });
+        dispatch(setLoading(false));
+    });
+};
+
 // code from https://stackoverflow.com/a/30832210/6548154
 function promptDownload(file, fileName) {
     if (window.navigator.msSaveOrOpenBlob) // IE10+
