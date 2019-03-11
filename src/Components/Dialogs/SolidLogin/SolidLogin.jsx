@@ -57,7 +57,7 @@ class FormDialog extends Component {
                     <Button onClick={handleClose} color="primary" type="button">
                       Cancel
                     </Button>
-                    <Button color="primary" type="submit" onClick={this.handleSubmit.bind(this)}>
+                    <Button color="primary" type="submit" onClick={this.handleSubmit.bind(this)} disabled={!isLoggedIn}>
                       Enter your Pod
                     </Button>
                   </DialogActions>
