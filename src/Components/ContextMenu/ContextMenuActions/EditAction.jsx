@@ -1,7 +1,7 @@
 import React from 'react';
 import MenuItem from '@material-ui/core/MenuItem';
 import { connect } from 'react-redux';
-import { getFileContent } from '../../../Actions/Actions.js';
+import { loadAndEditFile } from '../../../Actions/Actions.js';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Typography from '@material-ui/core/Typography';
 import OpenInBrowserIcon from '@material-ui/icons/OpenInBrowser';
@@ -29,7 +29,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch, ownProps) => {
     return {
         handleClick: (event, selectedFiles) => {
-            dispatch(getFileContent(selectedFiles[0].name));
+            dispatch(loadAndEditFile(selectedFiles[0].name));
         }
     };
 };

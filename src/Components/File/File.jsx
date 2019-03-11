@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {
     enterToDirectory, setContextMenuVisible, toggleSelectedFile, setContextMenuPosition,
-    setSelectedFileFromLastTo, getFileContent, 
+    setSelectedFileFromLastTo, loadAndEditFile, loadAndDisplayFile,
     rightClickOnFile, setSelectedFiles
 } from '../../Actions/Actions.js';
 import './File.css';
@@ -57,9 +57,9 @@ const mapDispatchToProps = (dispatch, ownProps) => {
         handleDoubleClick: (event) => {
             if (ownProps.type === 'file') {
                 if (config.isEditableFilePattern.test(ownProps.name) || ownProps.editable) {
-                    dispatch(getFileContent(ownProps.name));
+                    dispatch(loadAndEditFile(ownProps.name));
                 } else if (config.isImageFilePattern.test(ownProps.name)) {
-                    dispatch(getFileContent(ownProps.name));
+                    dispatch(loadAndDisplayFile(ownProps.name));
                 }
                 return;
             }

@@ -318,7 +318,6 @@ export const getFileContent = (fileName) => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
     dispatch(setFileContent(null));
-    dispatch(setVisibleDialogEdit(true));
     APIHandler.getFileBlob(path.join('/'), fileName).then(blob => {
         dispatch(setFileContent(blob));
         dispatch(setLoading(false));
@@ -329,6 +328,28 @@ export const getFileContent = (fileName) => (dispatch, getState) => {
         });
         dispatch(setLoading(false));
     });
+};
+
+
+/**
+ * Request API to get file content and open the edit dialogue
+ * @param {String} fileName
+ * @returns {Function} 
+ */
+export const loadAndEditFile = (fileName) => (dispatch, getState) => {
+    dispatch(getFileContent(fileName));
+    dispatch(setVisibleDialogEdit(true));
+};
+
+
+/**
+ * Request API to get file content and display it
+ * @param {String} fileName
+ * @returns {Function} 
+ */
+export const loadAndDisplayFile = (fileName) => (dispatch, getState) => {
+    dispatch(getFileContent(fileName));
+    dispatch(setVisibleDialogContent(true));
 };
 
 

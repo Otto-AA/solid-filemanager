@@ -1,7 +1,7 @@
 import React from 'react';
 import MenuItem from '@material-ui/core/MenuItem';
 import { connect } from 'react-redux';
-import { getFileContent, enterToDirectory } from '../../../Actions/Actions.js';
+import { loadAndDisplayFile, enterToDirectory } from '../../../Actions/Actions.js';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Typography from '@material-ui/core/Typography';
 import OpenInBrowserIcon from '@material-ui/icons/OpenInBrowser';
@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
                 dispatch(enterToDirectory(selectedFiles[0].name));
                 return;
             }
-            dispatch(getFileContent(selectedFiles[0].name));
+            dispatch(loadAndDisplayFile(selectedFiles[0].name));
         }
     };
 };
