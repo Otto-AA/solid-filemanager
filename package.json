@@ -1,13 +1,14 @@
 {
   "name": "solid-filemanager",
-  "version": "0.0.14",
-  "private": true,
+  "version": "1.0.0",
+  "private": false,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/otto-aa/solid-filemanager.git"
   },
   "keywords": [
-    "filemanager"
+    "filemanager",
+    "solid"
   ],
   "author": "A_A",
   "license": "MIT",
