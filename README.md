@@ -10,6 +10,7 @@ The app is available here: https://otto-aa.github.io/solid-filemanager/build/. T
 - Upload files
 - Copy, remove, move and rename file and folders
 - Edit text files (txt, html, ...)
+- Zip actions (archive and extract)
 - Download files
 - Open files in a new tab
 
@@ -30,4 +31,4 @@ With `npm build` you can create a static build (like [this one](https://otto-aa.
 
 ## Contribute
 
-Feel free to make contributions by adding features, filing issues, fixing bugs, etc.
+Feel free to make contributions by adding features, filing issues, fixing bugs, making suggestions, etc.
