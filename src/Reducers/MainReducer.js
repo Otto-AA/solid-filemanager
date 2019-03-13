@@ -15,7 +15,7 @@ export const defaultState = {
     loading: false,
     loadingSublist: false,
     errorMsg: null,
-    visibleDialogSolidLogin: true,
+    visibleDialogSolidLogin: false,
     visibleDialogSolidLogout: false,
     visibleDialogCreateFolder: false,
     visibleDialogCreateFile: false,
