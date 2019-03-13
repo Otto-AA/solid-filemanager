@@ -35,11 +35,13 @@ const logFetchError = async (error) => {
 }
 
 /**
- * Clean path string removing double slashes and prepending a slash
+ * Clean path string removing double slashes and prepending a slash if non-empty
  * @param {String} path
  * @returns {String}
  */
 const fixPath = (path) => {
+    if (path === "")
+        return path;
     return ('/' + path).replace(/\/\//g, '/');
 };
 
