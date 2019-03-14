@@ -8,14 +8,14 @@ export function getStats(graph, subjectName) {
     const subjectNode = rdflib.sym(subjectName);
     const mod = rdflib.sym('http://purl.org/dc/terms/modified');
     const size = rdflib.sym('http://www.w3.org/ns/posix/stat#size');
-    const mtime = rdflib.sym('http://www.w3.org/ns/posix/stat#mtime');
+    // const mtime = rdflib.sym('http://www.w3.org/ns/posix/stat#mtime');
     let modified = graph.any(subjectNode, mod, undefined);
     if (typeof (modified) === "undefined") return false;
     else modified = modified.value;
     return {
         modified: modified,
         size: graph.any(subjectNode, size, undefined).value,
-        mtime: graph.any(subjectNode, mtime, undefined).value,
+        // mtime: graph.any(subjectNode, mtime, undefined).value,
     };
 }
 
@@ -51,7 +51,7 @@ export function getFolderItems(graph, subj) {
         const stats = getStats(graph, item.value)
         newItem.modified = stats.modified
         newItem.size = stats.size
-        newItem.mtime = stats.mtime
+        // newItem.mtime = stats.mtime
         newItem.label = decodeURIComponent(item.value).replace(/.*\//, '')
 
         if (newItem.type === folderType) {
