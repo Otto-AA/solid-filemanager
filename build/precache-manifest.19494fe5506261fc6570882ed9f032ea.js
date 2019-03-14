@@ -4,19 +4,19 @@ self.__precacheManifest = [
     "url": "/solid-filemanager/build/static/js/runtime~main.3d27e25d.js"
   },
   {
-    "revision": "87f0f56d1d90447376f3",
-    "url": "/solid-filemanager/build/static/js/main.bfb2547c.chunk.js"
+    "revision": "40ab0ba35823121c7978",
+    "url": "/solid-filemanager/build/static/js/main.a073dce4.chunk.js"
   },
   {
     "revision": "859258acdcdf8b17ef07",
     "url": "/solid-filemanager/build/static/js/2.a4c11efa.chunk.js"
   },
   {
-    "revision": "87f0f56d1d90447376f3",
+    "revision": "40ab0ba35823121c7978",
     "url": "/solid-filemanager/build/static/css/main.5ad03d98.chunk.css"
   },
   {
-    "revision": "71b22594fc37c047ccc2e35003a640aa",
+    "revision": "231646fe7bbc4a1971e69d5b7e4e7d7f",
     "url": "/solid-filemanager/build/index.html"
   }
 ];
