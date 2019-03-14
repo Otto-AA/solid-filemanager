@@ -4,6 +4,7 @@ import * as rdflib from 'rdflib';
 const folderType = 'dir';
 const fileType = 'file';
 
+/*
 export function getStats(graph, subjectName) {
     const subjectNode = rdflib.sym(subjectName);
     const mod = rdflib.sym('http://purl.org/dc/terms/modified');
@@ -17,6 +18,15 @@ export function getStats(graph, subjectName) {
         size: graph.any(subjectNode, size, undefined).value,
         // mtime: graph.any(subjectNode, mtime, undefined).value,
     };
+}
+*/
+
+export function getSizeByGraph(graph, subjectName) {
+    const subjectNode = rdflib.sym(subjectName);
+    const nsSize = rdflib.sym('http://www.w3.org/ns/posix/stat#size');
+    const size = graph.any(subjectNode, nsSize, undefined);
+
+    return (size && 'value' in size) ? size.value : undefined;
 }
 
 /** A type used internally to indicate we are handling a folder */
@@ -48,10 +58,7 @@ export function getFolderItems(graph, subj) {
     ).forEach(item => {
         let newItem = {}
         newItem.type = getFileType(graph, item.value)
-        const stats = getStats(graph, item.value)
-        newItem.modified = stats.modified
-        newItem.size = stats.size
-        // newItem.mtime = stats.mtime
+        newItem.size = getSizeByGraph(graph, item.value);
         newItem.label = decodeURIComponent(item.value).replace(/.*\//, '')
 
         if (newItem.type === folderType) {
