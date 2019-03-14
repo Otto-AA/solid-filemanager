@@ -212,7 +212,7 @@ export const downloadItems = (itemList) => async (dispatch, getState) => {
     dispatch(setLoading(true));
     try {
         let blob;
-        let downloadName = `${itemList[0].name}.zip`;
+        let downloadName = itemList[0].name;
         if (itemList.length === 1 && itemList[0].type === 'file') {
             blob = await APIHandler.getFileBlob(path.join('/'), itemList[0].name);
         }
@@ -221,7 +221,8 @@ export const downloadItems = (itemList) => async (dispatch, getState) => {
             blob = await zip.generateAsync({ type: 'blob' });
 
             if (itemList.length > 1)
-                downloadName = 'Archive.zip';
+                downloadName = 'Archive';
+            downloadName = `${downloadName}.zip`;
         }
 
         promptDownload(blob, downloadName);
