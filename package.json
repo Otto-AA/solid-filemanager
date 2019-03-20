@@ -15,7 +15,7 @@
   "bugs": {
     "url": "https://github.com/otto-aa/solid-filemanager/issues"
   },
-  "homepage": "https://otto-aa.github.io/solid-filemanager/build/",
+  "homepage": ".",
   "dependencies": {
     "@material-ui/core": "^3.9.2",
     "@material-ui/icons": "^3.0.2",
