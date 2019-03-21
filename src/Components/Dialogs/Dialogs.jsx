@@ -2,6 +2,7 @@ import React from 'react';
 import DialogSolidLogin from './SolidLogin/SolidLogin.jsx';
 import DialogSolidLogout from './SolidLogout/SolidLogout.jsx';
 import DialogContent from './Content/Content.jsx';
+import DialogMedia from './Media/Media.jsx';
 import DialogEdit from './Edit/Edit.jsx';
 import DialogCreateFolder from './CreateFolder/CreateFolder.jsx';
 import DialogCreateFile from './CreateFile/CreateFile.jsx';
@@ -16,6 +17,7 @@ function Dialogs(props) {
             <DialogSolidLogin />
             <DialogSolidLogout />
             <DialogContent />
+            <DialogMedia />
             <DialogEdit />
             <DialogCreateFolder />
             <DialogCreateFile />

@@ -355,6 +355,16 @@ export const loadAndDisplayFile = (fileName) => (dispatch, getState) => {
 
 
 /**
+ * Request API to display an audio or video file
+ * @param {String} fileName
+ * @returns {Function}
+ */
+export const displayMediaFile = (fileName) => (dispatch, getState) => {
+    dispatch(setVisibleDialogMedia(true));
+};
+
+
+/**
  * Request API to create a folder then dispatch defined events
  * @param {String} createFolderName
  * @returns {Function}
@@ -709,6 +719,13 @@ export const setVisibleDialogCopy = (visible) => {
 export const setVisibleDialogContent = (visible) => {
     return {
         type: 'SET_VISIBLE_DIALOG_CONTENT',
+        value: !!visible
+    };
+};
+
+export const setVisibleDialogMedia = (visible) => {
+    return {
+        type: 'SET_VISIBLE_DIALOG_MEDIA',
         value: !!visible
     };
 };

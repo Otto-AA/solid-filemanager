@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {
     enterToDirectory, setContextMenuVisible, toggleSelectedFile, setContextMenuPosition,
-    setSelectedFileFromLastTo, loadAndEditFile, loadAndDisplayFile,
+    setSelectedFileFromLastTo, loadAndEditFile, loadAndDisplayFile, displayMediaFile,
     rightClickOnFile, setSelectedFiles
 } from '../../Actions/Actions.js';
 import './File.css';
@@ -60,6 +60,8 @@ const mapDispatchToProps = (dispatch, ownProps) => {
                     dispatch(loadAndEditFile(ownProps.name));
                 } else if (config.isImageFilePattern.test(ownProps.name)) {
                     dispatch(loadAndDisplayFile(ownProps.name));
+                } else if (config.isMediaFilePattern.test(ownProps.name)) {
+                    dispatch(displayMediaFile(ownProps.name));
                 }
                 return;
             }
