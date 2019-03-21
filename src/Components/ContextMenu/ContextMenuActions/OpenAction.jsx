@@ -1,10 +1,11 @@
 import React from 'react';
 import MenuItem from '@material-ui/core/MenuItem';
 import { connect } from 'react-redux';
-import { loadAndDisplayFile, enterToDirectory } from '../../../Actions/Actions.js';
+import { loadAndDisplayFile, displayMediaFile, loadAndEditFile, enterToDirectory } from '../../../Actions/Actions.js';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Typography from '@material-ui/core/Typography';
 import OpenInBrowserIcon from '@material-ui/icons/OpenInBrowser';
+import config from '../../../config.js';
 
 function OpenAction(props) {
     const {handleClick, selectedFiles} = props;
@@ -33,7 +34,14 @@ const mapDispatchToProps = (dispatch, ownProps) => {
                 dispatch(enterToDirectory(selectedFiles[0].name));
                 return;
             }
-            dispatch(loadAndDisplayFile(selectedFiles[0].name));
+
+            if (config.isEditableFilePattern.test(ownProps.name) || ownProps.editable) {
+                dispatch(loadAndEditFile(ownProps.name));
+            } else if (config.isImageFilePattern.test(ownProps.name)) {
+                dispatch(loadAndDisplayFile(ownProps.name));
+            } else if (config.isMediaFilePattern.test(ownProps.name)) {
+                dispatch(displayMediaFile(ownProps.name));
+            }
         }
     };
 };
