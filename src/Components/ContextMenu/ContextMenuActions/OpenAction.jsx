@@ -30,17 +30,18 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch, ownProps) => {
     return {
         handleClick: (event, selectedFiles) => {
-            if (selectedFiles[0].type === 'dir') {
-                dispatch(enterToDirectory(selectedFiles[0].name));
+            const file = selectedFiles[0];
+            if (file.type === 'dir') {
+                dispatch(enterToDirectory(file.name));
                 return;
             }
 
-            if (config.isEditableFilePattern.test(ownProps.name) || ownProps.editable) {
-                dispatch(loadAndEditFile(ownProps.name));
-            } else if (config.isImageFilePattern.test(ownProps.name)) {
-                dispatch(loadAndDisplayFile(ownProps.name));
-            } else if (config.isMediaFilePattern.test(ownProps.name)) {
-                dispatch(displayMediaFile(ownProps.name));
+            if (config.isEditableFilePattern.test(file.name) || file.editable) {
+                dispatch(loadAndEditFile(file.name));
+            } else if (config.isImageFilePattern.test(file.name)) {
+                dispatch(loadAndDisplayFile(file.name));
+            } else if (config.isMediaFilePattern.test(file.name)) {
+                dispatch(displayMediaFile(file.name));
             }
         }
     };
