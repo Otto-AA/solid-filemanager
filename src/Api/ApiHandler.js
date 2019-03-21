@@ -303,6 +303,7 @@ export const getActionsByFile = (file, acts = []) => {
 
     if (file.type === 'file') {
         config.isImageFilePattern.test(file.name) && acts.push('open');
+        config.isMediaFilePattern.test(file.name) && acts.push('open');
 
         typeof file.editable !== 'undefined' ?
             file.editable && acts.push('edit') :
