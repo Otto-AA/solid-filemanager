@@ -7,31 +7,44 @@ import * as JSZip from 'jszip';
  * Log a fetch response error and throw it again
  * @param {*} error 
  */
-const logFetchError = async (error) => {
-    let errorMessage = '';
+const handleFetchError = async (error) => {
+    let detailedErrorMessage = '';
+    let displayErrorMessage;
 
     console.group('handleFetchError');
     if (error instanceof Response) {
-        errorMessage = await error.text();
+        detailedErrorMessage = await error.text();
 
         console.error(`url: ${error.url}`);
         console.error(`status: ${error.status}`);
+
+        const displayMessages = {
+            '401': `The ressource at ${error.url} requires you to login.`,
+            '403': `You don't have permission to access the ressource at ${error.url}.
+            Please make sure that you are logged in with the correct account.
+            If the server runs with version 5.0.0 or higher, make sure you gave this app read/write permission`,
+            '404': `The ressource at ${error.url} was not found`,
+            '500': `An internal server error occured...
+            ${detailedErrorMessage}`,
+        };
+        if (error.status in displayMessages)
+            displayErrorMessage = displayMessages[error.status];
     }
     else if (error instanceof Error) {
-        errorMessage = error.message;
+        detailedErrorMessage = error.message;
         console.error(error.stack);
     }
     else if (typeof error === 'string') {
-        errorMessage = error;
+        detailedErrorMessage = error;
     }
     else {
-        errorMessage = JSON.stringify(error);
+        detailedErrorMessage = JSON.stringify(error);
     }
-    console.error(`errorMessage: ${errorMessage}`);
+    console.error(`errorMessage: ${detailedErrorMessage}`);
     console.error(`error: ${error}`);
     console.groupEnd();
 
-    throw new Error(errorMessage);
+    throw new Error((displayErrorMessage) ? displayErrorMessage : detailedErrorMessage);
 }
 
 /**
@@ -54,7 +67,7 @@ export const getItemList = (path) => {
     path = fixPath(path);
     return API.readFolder(path)
         .then(({ files, folders }) => [...files, ...folders])
-        .catch(logFetchError);
+        .catch(handleFetchError);
 };
 
 /**
@@ -67,7 +80,7 @@ export const getFileBlob = (path, filename) => {
     path = fixPath(path);
     return API.fetchFile(path, filename)
         .then(response => response.blob())
-        .catch(logFetchError);
+        .catch(handleFetchError);
 };
 
 
@@ -81,7 +94,7 @@ export const getFileBlob = (path, filename) => {
 export const renameFile = (path, fileName, newFileName) => {
     path = fixPath(path);
     return API.renameFile(path, fileName, newFileName)
-        .catch(logFetchError)
+        .catch(handleFetchError)
 };
 
 
@@ -95,7 +108,7 @@ export const renameFile = (path, fileName, newFileName) => {
 export const renameFolder = (path, folderName, newFolderName) => {
     path = fixPath(path);
     return API.renameFolder(path, folderName, newFolderName)
-        .catch(logFetchError)
+        .catch(handleFetchError)
 };
 
 /**
@@ -110,7 +123,7 @@ export const createFolder = (path, folder) => {
         return Promise.reject('Invalid folder name');
     }
     return API.createFolder(path, folder)
-        .catch(logFetchError)
+        .catch(handleFetchError)
 };
 
 /**
@@ -125,7 +138,7 @@ export const removeItems = (path, filenames) => {
         return Promise.reject('No files to remove');
     }
     return API.removeItems(path, filenames)
-        .catch(logFetchError)
+        .catch(handleFetchError)
 };
 
 /**
@@ -142,7 +155,7 @@ export const moveItems = (path, destination, filenames) => {
         return Promise.reject('No files to move');
     }
     return API.moveItems(path, destination, filenames)
-        .catch(logFetchError)
+        .catch(handleFetchError)
 };
 
 /**
@@ -159,7 +172,7 @@ export const copyItems = (path, destination, filenames) => {
         return Promise.reject('No files to copy');
     }
     return API.copyItems(path, destination, filenames)
-        .catch(logFetchError)
+        .catch(handleFetchError)
 };
 
 /**
@@ -175,7 +188,7 @@ export const uploadFiles = (path, fileList) => {
         return Promise.reject('No files to upload');
     }
     return API.upload(path, fileList)
-        .catch(logFetchError)
+        .catch(handleFetchError)
 };
 
 /**
@@ -188,7 +201,7 @@ export const uploadFiles = (path, fileList) => {
 export const updateFile = (path, fileName, content) => {
     path = fixPath(path);
     return API.updateItem(path, fileName, content)
-        .catch(logFetchError);
+        .catch(handleFetchError);
 };
 
 /**

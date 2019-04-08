@@ -30,7 +30,7 @@ export async function fetchFile(path, fileName = '') {
  */
 export async function fetchFolder(path, folderName = '') {
     const url = buildFolderUrl(path, folderName);
-    return solidAuth.fetch(url)
+    return solidAuth.fetch(url, { headers: { "Accept": "text/turtle" } })
         .then(assertSuccessfulResponse);
 };
 
