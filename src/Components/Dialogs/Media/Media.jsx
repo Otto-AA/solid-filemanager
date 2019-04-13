@@ -19,7 +19,7 @@ class FormDialog extends Component {
                 <DialogTitle id="form-dialog-display-media">Display Media</DialogTitle>
                 <DialogContent>
                     <p>Playing {fileName}</p>
-                    <Plyr type={type} provider={provider} url={url} />
+                    <Plyr type={type} provider={provider} url={url} iconUrl="./vendor/plyr/plyr.svg" />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose} color="primary" type="button">
