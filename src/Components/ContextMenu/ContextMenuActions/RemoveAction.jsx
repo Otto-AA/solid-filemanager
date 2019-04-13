@@ -7,9 +7,9 @@ import Typography from '@material-ui/core/Typography';
 import DeleteIcon from '@material-ui/icons/Delete';
 
 function RemoveAction(props) {
-    const {handleClick, selectedFiles} = props;
+    const {handleClick, selectedItems} = props;
     return (
-        <MenuItem onClick={(e) => handleClick(e, selectedFiles)}>
+        <MenuItem onClick={(e) => handleClick(e, selectedItems)}>
             <ListItemIcon>
                 <DeleteIcon />
             </ListItemIcon>
@@ -22,14 +22,14 @@ function RemoveAction(props) {
 
 const mapStateToProps = (state) => {
     return {
-        selectedFiles: state.selectedFiles
+        selectedItems: state.selectedItems
     };
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {
     return {
-        handleClick: (event, selectedFiles) => {
-            dispatch(removeItems(selectedFiles));
+        handleClick: (event, selectedItems) => {
+            dispatch(removeItems(selectedItems));
         }
     };
 };

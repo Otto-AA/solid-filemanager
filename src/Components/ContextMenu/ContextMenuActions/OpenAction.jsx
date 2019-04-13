@@ -1,16 +1,16 @@
 import React from 'react';
 import MenuItem from '@material-ui/core/MenuItem';
 import { connect } from 'react-redux';
-import { loadAndDisplayFile, displayMediaFile, loadAndEditFile, enterToDirectory } from '../../../Actions/Actions.js';
+import { loadAndDisplayFile, displaySelectedMediaFile, loadAndEditFile, enterToDirectory } from '../../../Actions/Actions.js';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Typography from '@material-ui/core/Typography';
 import OpenInBrowserIcon from '@material-ui/icons/OpenInBrowser';
-import config from '../../../config.js';
+import { FileItem, FolderItem } from '../../../Api/Item.js';
 
 function OpenAction(props) {
-    const {handleClick, selectedFiles} = props;
+    const {handleClick, selectedItems} = props;
     return (
-        <MenuItem onClick={(e) => handleClick(e, selectedFiles)}>
+        <MenuItem onClick={(e) => handleClick(e, selectedItems)}>
             <ListItemIcon>
                 <OpenInBrowserIcon />
             </ListItemIcon>
@@ -23,25 +23,24 @@ function OpenAction(props) {
 
 const mapStateToProps = (state) => {
     return {
-        selectedFiles: state.selectedFiles
+        selectedItems: state.selectedItems
     };
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {
     return {
-        handleClick: (event, selectedFiles) => {
-            const file = selectedFiles[0];
-            if (file.type === 'dir') {
-                dispatch(enterToDirectory(file.name));
-                return;
-            }
+        handleClick: (event, selectedItems) => {
+            const item = selectedItems[0];
 
-            if (config.isEditableFilePattern.test(file.name) || file.editable) {
-                dispatch(loadAndEditFile(file.name));
-            } else if (config.isImageFilePattern.test(file.name)) {
-                dispatch(loadAndDisplayFile(file.name));
-            } else if (config.isMediaFilePattern.test(file.name)) {
-                dispatch(displayMediaFile(file.name));
+            if (item instanceof FolderItem)
+                dispatch(enterToDirectory(item.name));
+            else if (item instanceof FileItem) {
+                if (item.isEditable())
+                    dispatch(loadAndEditFile(item.name));
+                else if (item.isImage())
+                    dispatch(loadAndDisplayFile(item.name));
+                else if (item.isMedia())
+                    dispatch(displaySelectedMediaFile());
             }
         }
     };

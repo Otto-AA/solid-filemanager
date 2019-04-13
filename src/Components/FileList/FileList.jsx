@@ -7,16 +7,15 @@ import './FileList.css';
 
 class FileList extends Component {
     render() {
-        const { fileList, loading } = this.props;
-        
-        const fileListComponent = fileList.map((file, key) => {
-            return <File type={file.type} name={file.name} editable={file.editable} size={file.size} key={key} />
+        const { itemList, loading } = this.props;
+        const itemComponents = itemList.map((item, key) => {
+            return <File item={item} key={key} />;
         });
 
         return <div className="FileList">
             { loading ? 
                 <Loader /> : 
-                fileListComponent.length ? fileListComponent : <FileListEmptyMessage />
+                itemComponents.length ? itemComponents : <FileListEmptyMessage />
             }
         </div>
     }
@@ -24,11 +23,13 @@ class FileList extends Component {
 
 
 const mapStateToProps = (state) => {
-    const filteredList = state.fileList.filter(
-        file => state.fileListFilter ? file.name.toLocaleLowerCase().match(state.fileListFilter.toLocaleLowerCase()) : true
-    );
+    const filterVal = state.fileListFilter;
+    const itemList = filterVal ?
+        state.itemList.filter(item => filterMatch(item.getDisplayName(), filterVal))
+        : state.itemList;
+
     return {
-        fileList: filteredList,
+        itemList,
         loading: state.loading
     };
 };
@@ -40,6 +41,10 @@ const mapDispatchToProps = (dispatch) => {
         }
     };
 };
+
+const filterMatch = (first, second) => {
+    return first.toLocaleLowerCase().match(second.toLocaleLowerCase());
+}
 
 export default connect(mapStateToProps, mapDispatchToProps)(FileList);
 

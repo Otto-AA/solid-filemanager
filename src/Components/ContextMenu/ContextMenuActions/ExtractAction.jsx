@@ -7,10 +7,10 @@ import UnarchiveIcon from '@material-ui/icons/Unarchive';
 import { extractZipFile } from '../../../Actions/Actions.js';
 
 function ExtractAction(props) {
-    const {handleClick, selectedFiles} = props;
+    const {handleClick, selectedItems} = props;
 
     return (
-        <MenuItem onClick={(e) => handleClick(e, selectedFiles)}>
+        <MenuItem onClick={(e) => handleClick(e, selectedItems)}>
             <ListItemIcon>
                 <UnarchiveIcon />
             </ListItemIcon>
@@ -23,14 +23,14 @@ function ExtractAction(props) {
 
 const mapStateToProps = (state) => {
     return {
-        selectedFiles: state.selectedFiles
+        selectedItems: state.selectedItems
     };
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {
     return {
-        handleClick: (event, selectedFiles) => {
-            dispatch(extractZipFile(selectedFiles[0].name));
+        handleClick: (event, selectedItems) => {
+            dispatch(extractZipFile(selectedItems[0].name));
         }
     };
 };

@@ -1,8 +1,6 @@
 // Based on https://github.com/jeff-zucker/solid-file-client/blob/master/src/folderUtils.js
 import * as rdflib from 'rdflib';
-
-const folderType = 'dir';
-const fileType = 'file';
+import { FileItem, FolderItem } from './Item.js';
 
 /*
 export function getStats(graph, subjectName) {
@@ -35,19 +33,21 @@ export function getSizeByGraph(graph, subjectName) {
  * @param {string} url location of the folder
  * @returns {string} content mime-type of a file, If it's a folder, return 'folder', 'unknown' for not sure
  */
-export function getFileType(graph, url) {
+export function isFolder(graph, url) {
     const folderNode = rdflib.sym(url);
     const isAnInstanceOfClass = rdflib.sym('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
     const types = graph.each(folderNode, isAnInstanceOfClass, undefined);
     for (const index in types) {
         const contentType = types[index].value;
         if (contentType.match('ldp#BasicContainer'))
-            return folderType;
+            return true;
         else
-            return fileType;
+            return false;
     }
-    return 'unknown';
+    console.error('unknown item type', graph, url);
+    return false;
 }
+
 export function getFolderItems(graph, subj) {
     const files = [];
     const folders = [];
@@ -56,26 +56,13 @@ export function getFolderItems(graph, subj) {
         rdflib.sym('http://www.w3.org/ns/ldp#contains'),
         undefined
     ).forEach(item => {
-        let newItem = {}
-        newItem.type = getFileType(graph, item.value)
-        newItem.size = getSizeByGraph(graph, item.value);
-        newItem.label = decodeURIComponent(item.value).replace(/.*\//, '')
+        const url = item.value;
+        const size = getSizeByGraph(graph, url);
 
-        if (newItem.type === folderType) {
-            item.value = item.value.replace(/[/]+/g, '/');
-            item.value = item.value.replace(/https:/, 'https:/');
-            const name = item.value.replace(/\/$/, '')
-            newItem.name = name.replace(/.*\//, '')
-            newItem.url = item.value
-
-            folders.push(newItem);
-        }
-        else {
-            newItem.url = item.value
-            newItem.name = item.value.replace(/.*\//, '')
-
-            files.push(newItem);
-        }
+        if (isFolder(graph, url))
+            folders.push(new FolderItem(url, size));
+        else
+            files.push(new FileItem(url, size));
     });
 
     return { files, folders };
@@ -102,7 +89,7 @@ export async function text2graph(text, url, contentType) {
 
 /*cjs*/ function guessFileType(url) {
     const ext = url.replace(/.*\./, '');
-    if (ext.match(/\/$/)) return folderType;
+    if (ext.match(/\/$/)) return 'dir';
     if (ext.match(/(md|markdown)/)) return 'text/markdown';
     if (ext.match(/html/)) return 'text/html';
     if (ext.match(/xml/)) return 'text/xml';

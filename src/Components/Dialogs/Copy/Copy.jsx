@@ -14,7 +14,7 @@ class FormDialog extends Component {
     render() {
         const { 
             selectedPath, handleClose, handleSave, open, 
-            canGoBack, canCopy, selectedFiles, handleGoBack 
+            canGoBack, canCopy, selectedItems, handleGoBack 
         } = this.props;
 
         return (
@@ -34,7 +34,7 @@ class FormDialog extends Component {
                         <Button onClick={handleClose} color="primary" type="button">
                             Cancel
                         </Button>
-                        <Button color="primary" onClick={(e) => handleSave(e, selectedFiles)} disabled={!canCopy} type="submit">
+                        <Button color="primary" onClick={(e) => handleSave(e, selectedItems)} disabled={!canCopy} type="submit">
                             Copy
                         </Button>
                     </DialogActions>
@@ -54,7 +54,7 @@ const mapStateToProps = (state) => {
         selectedPath: state.selectedFolderSublist ? [...state.pathSublist, state.selectedFolderSublist.name] : [],
         canGoBack: state.pathSublist.length,
         canCopy: state.selectedFolderSublist && canCopy,
-        selectedFiles: state.selectedFiles
+        selectedItems: state.selectedItems
     };
 };
 
@@ -64,8 +64,8 @@ const mapDispatchToProps = (dispatch, ownProps) => {
             dispatch(setSelectedFolderSublist(null));
             dispatch(setVisibleDialogCopy(false));
         },
-        handleSave: (event, selectedFiles) => {
-            dispatch(copyItems(selectedFiles));
+        handleSave: (event, selectedItems) => {
+            dispatch(copyItems(selectedItems));
         },
         handleGoBack: (event) => {
             dispatch(setSelectedFolderSublist(null));

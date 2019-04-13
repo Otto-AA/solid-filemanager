@@ -7,10 +7,10 @@ import ArchiveIcon from '@material-ui/icons/Archive';
 import { zipAndUpload } from '../../../Actions/Actions.js';
 
 function ZipAction(props) {
-    const {handleClick, selectedFiles} = props;
+    const {handleClick, selectedItems} = props;
 
     return (
-        <MenuItem onClick={(e) => handleClick(e, selectedFiles)}>
+        <MenuItem onClick={(e) => handleClick(e, selectedItems)}>
             <ListItemIcon>
                 <ArchiveIcon />
             </ListItemIcon>
@@ -23,14 +23,14 @@ function ZipAction(props) {
 
 const mapStateToProps = (state) => {
     return {
-        selectedFiles: state.selectedFiles
+        selectedItems: state.selectedItems
     };
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {
     return {
-        handleClick: (event, selectedFiles) => {
-            dispatch(zipAndUpload(selectedFiles));
+        handleClick: (event, selectedItems) => {
+            dispatch(zipAndUpload(selectedItems));
         }
     };
 };

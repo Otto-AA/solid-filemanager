@@ -7,10 +7,10 @@ import HowToVoteIcon from '@material-ui/icons/HowToVote';
 import { initSubList, setVisibleDialogMove } from '../../../Actions/Actions.js';
 
 function MoveAction(props) {
-    const {handleClick, selectedFiles} = props;
+    const {handleClick} = props;
 
     return (
-        <MenuItem onClick={(e) => handleClick(e, selectedFiles)}>
+        <MenuItem onClick={(e) => handleClick(e)}>
             <ListItemIcon>
                 <HowToVoteIcon />
             </ListItemIcon>
@@ -22,14 +22,12 @@ function MoveAction(props) {
 }
 
 const mapStateToProps = (state) => {
-    return {
-        selectedFiles: state.selectedFiles
-    };
+    return {};
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {
     return {
-        handleClick: (event, selectedFiles) => {
+        handleClick: (event) => {
             dispatch(initSubList());
             dispatch(setVisibleDialogMove(true));
         }

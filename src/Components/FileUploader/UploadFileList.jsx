@@ -5,7 +5,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import FileIcon from '@material-ui/icons/InsertDriveFile';
-import { getHumanFileSize } from '../../Api/ApiHandler';
+import { getHumanFileSize } from '../../Api/Item';
 
 function UploadFileList(props) {
     const { files } = props;

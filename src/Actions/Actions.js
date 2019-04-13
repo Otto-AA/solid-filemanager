@@ -1,6 +1,7 @@
 import * as APIHandler from '../Api/ApiHandler.js';
 import * as solidAuth from 'solid-auth-client';
-import config from '../config.js';
+// eslint-disable-next-line no-unused-vars
+import { Item, FileItem, FolderItem } from '../Api/Item.js';
 
 
 export const solidLogin = () => (dispatch, getState) => {
@@ -35,8 +36,8 @@ export const solidLogout = () => (dispatch, getState) => {
     solidAuth.logout().then(() => {
         dispatch(setPath([]));
         dispatch(setPathSublist([]));
-        dispatch(setFileList([]));
-        dispatch(setSelectedFiles([]));
+        dispatch(setItemList([]));
+        dispatch(setSelectedItems([])); // TODO
         dispatch(setIsLoggedIn(false));
         dispatch(setWebId(''));
         dispatch(setVisibleDialogSolidLogout(false));
@@ -59,7 +60,7 @@ export const solidLogout = () => (dispatch, getState) => {
 export const uploadFiles = (fileList) => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
-    dispatch(setSelectedFiles([]));
+    dispatch(setSelectedItems([]));
     dispatch(setFileUploadProgress(50));
 
     APIHandler.uploadFiles(path.join('/'), fileList).then(r => {
@@ -87,9 +88,9 @@ export const createFile = (fileName) => (dispatch, getState) => {
         dispatch(refreshFileList());
 
         APIHandler.getItemList(path.join('/')).then(itemList => {
-            const file = itemList.find(item => item.name === fileName || item.name === encodeURI(fileName));
-            dispatch(setSelectedFiles([file]));
-            dispatch(getFileContent(file.name));
+            const item = itemList.find(item => item.name === fileName || item.name === encodeURI(fileName));
+            dispatch(setSelectedItems([item]));
+            dispatch(getFileContent(item.name));
             dispatch(setVisibleDialogEdit(true));
         });
     });
@@ -120,12 +121,12 @@ export const updateTextFile = (fileName, content) => (dispatch, getState) => {
 export const refreshFileList = () => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
-    dispatch(setSelectedFiles([]));
-    APIHandler.getItemList(path.join('/')).then(r => {
+    dispatch(setSelectedItems([]));
+    APIHandler.getItemList(path.join('/')).then(items => {
         dispatch(setLoading(false));
-        dispatch(setFileList(r));
+        dispatch(setItemList(items));
     }).catch(r => {
-        dispatch(setFileList([]));
+        dispatch(setItemList([]));
         dispatch({
             type: 'SET_ERROR_MSG',
             value: r.toString()
@@ -146,9 +147,9 @@ export const refreshFileListSublist = () => (dispatch, getState) => {
 
     APIHandler.getItemList(pathSublist.join('/')).then(r => {
         dispatch(setLoadingSublist(false));
-        dispatch(setFileListSublist(r));
+        dispatch(setItemListSublist(r));
     }).catch(r => {
-        dispatch(setFileListSublist([]));
+        dispatch(setItemListSublist([]));
         dispatch({
             type: 'SET_ERROR_MSG',
             value: r.toString()
@@ -213,7 +214,7 @@ export const downloadItems = (itemList) => async (dispatch, getState) => {
     try {
         let blob;
         let downloadName = itemList[0].name;
-        if (itemList.length === 1 && itemList[0].type === 'file') {
+        if (itemList.length === 1 && itemList[0] instanceof FileItem) {
             blob = await APIHandler.getFileBlob(path.join('/'), itemList[0].name);
         }
         else {
@@ -244,7 +245,7 @@ export const downloadItems = (itemList) => async (dispatch, getState) => {
  */
 export const zipAndUpload = (itemList) => (dispatch, getState) => {
     const { path } = getState();
-    const archiveName = (itemList.length === 1 && itemList[0].type === 'dir') ? `${itemList[0].name}.zip` : 'Archive.zip';
+    const archiveName = (itemList.length === 1 && itemList[0] instanceof FolderItem) ? `${itemList[0].name}.zip` : 'Archive.zip';
 
     dispatch(setLoading(true));
     APIHandler.getAsZip(path.join('/'), itemList)
@@ -302,11 +303,12 @@ function promptDownload(file, fileName) {
     }
 }
 
-
-export const openInNewTab = (fileName) => (dispatch, getState) => {
-    const { path } = getState();
-    const url = `${config.getHost()}/${path.length ? (path.join('/') + '/') : ''}${fileName}`;
-    window.open(url, '_blank');
+/**
+ * Opens the item in a new tab
+ * @param {Item} item 
+ */
+export const openInNewTab = (item) => (dispatch, getState) => {
+    window.open(item.url, '_blank');
 };
 
 
@@ -356,10 +358,9 @@ export const loadAndDisplayFile = (fileName) => (dispatch, getState) => {
 
 /**
  * Request API to display an audio or video file
- * @param {String} fileName
  * @returns {Function}
  */
-export const displayMediaFile = (fileName) => (dispatch, getState) => {
+export const displaySelectedMediaFile = () => (dispatch, getState) => {
     dispatch(setVisibleDialogMedia(true));
 };
 
@@ -389,15 +390,15 @@ export const createNewFolder = (createFolderName) => (dispatch, getState) => {
 
 /**
  * Request API to remove an item then dispatch defined events
- * @param {Array} filenames
+ * @param {Array<Item>} items
  * @returns {Function}
  */
-export const removeItems = (files) => (dispatch, getState) => {
+export const removeItems = (items) => (dispatch, getState) => {
     const { path } = getState();
-    const filenames = files.map(f => f.name);
+    const itemNames = items.map(f => f.name);
 
     dispatch(setLoading(true));
-    APIHandler.removeItems(path.join('/'), filenames).then(r => {
+    APIHandler.removeItems(path.join('/'), itemNames).then(r => {
         dispatch(setLoading(false));
         dispatch(refreshFileList());
     }).catch(r => {
@@ -412,16 +413,16 @@ export const removeItems = (files) => (dispatch, getState) => {
 
 /**
  * Request API to move an item then dispatch defined events
- * @param {Array} filenames
+ * @param {Array<Item>} items
  * @returns {Function}
  */
-export const moveItems = (files) => (dispatch, getState) => {
+export const moveItems = (items) => (dispatch, getState) => {
     const { path, pathSublist, selectedFolderSublist } = getState();
     const destination = pathSublist.join('/') + '/' + selectedFolderSublist.name;
-    const filenames = files.map(f => f.name);
+    const itemNames = items.map(f => f.name);
 
     dispatch(setLoading(true));
-    APIHandler.moveItems(path.join('/'), destination, filenames).then(r => {
+    APIHandler.moveItems(path.join('/'), destination, itemNames).then(r => {
         dispatch(setLoading(false));
         dispatch(setVisibleDialogMove(false));
         dispatch(refreshFileList());
@@ -437,16 +438,17 @@ export const moveItems = (files) => (dispatch, getState) => {
 
 /**
  * Request API to copy an item then dispatch defined events
- * @param {Array} filenames
+ * @param {Array<Item>} items
  * @returns {Function}
  */
-export const copyItems = (files) => (dispatch, getState) => {
+export const copyItems = (items) => (dispatch, getState) => {
     const { path, pathSublist, selectedFolderSublist } = getState();
     const destination = pathSublist.join('/') + '/' + selectedFolderSublist.name;
-    const filenames = files.map(f => f.name);
+    const itemNames = items.map(f => f.name);
 
     dispatch(setLoading(true));
-    APIHandler.copyItems(path.join('/'), destination, filenames).then(r => {
+    APIHandler.copyItems(path.join('/'), destination, itemNames).then(r => {
+        alert('response');
         dispatch(setLoading(false));
         dispatch(setVisibleDialogCopy(false));
         dispatch(refreshFileList());
@@ -466,23 +468,23 @@ export const copyItems = (files) => (dispatch, getState) => {
  * @returns {Function}
  */
 export const setSelectedFileFromLastTo = (lastFile) => (dispatch, getState) => {
-    const { fileList, selectedFiles } = getState();
+    const { itemList, selectedItems } = getState();
 
-    const lastPreviouslySelected = [...selectedFiles].pop();
-    const lastPreviouslySelectedIndex = fileList.indexOf(fileList.find(f => f.name === lastPreviouslySelected.name))
-    const lastSelectedIndex = fileList.indexOf(fileList.find(f => f.name === lastFile.name))
+    const lastPreviouslySelected = [...selectedItems].pop();
+    const lastPreviouslySelectedIndex = itemList.indexOf(itemList.find(f => f.name === lastPreviouslySelected.name))
+    const lastSelectedIndex = itemList.indexOf(itemList.find(f => f.name === lastFile.name))
 
     let toAdd = [];
     if (lastSelectedIndex > lastPreviouslySelectedIndex) {
-        toAdd = fileList.filter((index, element) => {
-            return fileList.indexOf(index) <= lastSelectedIndex && fileList.indexOf(index) >= lastPreviouslySelectedIndex
+        toAdd = itemList.filter((index, element) => {
+            return itemList.indexOf(index) <= lastSelectedIndex && itemList.indexOf(index) >= lastPreviouslySelectedIndex
         });
     } else {
-        toAdd = fileList.filter((index, element) => {
-            return fileList.indexOf(index) >= lastSelectedIndex && fileList.indexOf(index) <= lastPreviouslySelectedIndex
+        toAdd = itemList.filter((index, element) => {
+            return itemList.indexOf(index) >= lastSelectedIndex && itemList.indexOf(index) <= lastPreviouslySelectedIndex
         });
     }
-    dispatch(setSelectedFiles([...selectedFiles, ...toAdd]));
+    dispatch(setSelectedItems([...selectedItems, ...toAdd]));
 };
 
 
@@ -492,7 +494,7 @@ export const setSelectedFileFromLastTo = (lastFile) => (dispatch, getState) => {
 export const initSubList = () => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setSelectedFolderSublist(null));
-    dispatch(setFileListSublist([]));
+    dispatch(setItemListSublist([]));
     dispatch(setPathSublist([...path]));
     dispatch(refreshFileListSublist());
 };
@@ -576,24 +578,24 @@ export const enterToDirectorySublist = (directory) => (dispatch, getState) => {
     dispatch(refreshFileListSublist());
 };
 
-export const setFileList = (fileList) => {
+export const setItemList = (itemList) => {
     return {
-        type: 'SET_FILE_LIST',
-        value: fileList
+        type: 'SET_ITEM_LIST',
+        value: itemList
     };
 };
 
-export const setFileListSublist = (fileList) => {
+export const setItemListSublist = (itemList) => {
     return {
-        type: 'SET_FILE_LIST_SUB_LIST',
-        value: fileList
+        type: 'SET_ITEM_LIST_SUB_LIST',
+        value: itemList
     };
 };
 
-export const setSelectedFiles = (files) => {
+export const setSelectedItems = (items) => {
     return {
-        type: 'SET_SELECTED_FILES',
-        value: files
+        type: 'SET_SELECTED_ITEMS',
+        value: items
     };
 };
 
@@ -639,11 +641,11 @@ export const toggleSelectedFile = (file) => {
     };
 };
 
-export const rightClickOnFile = (file) => (dispatch, getState) => {
-    const { selectedFiles } = getState();
-    const isSelected = selectedFiles.indexOf(selectedFiles.find(f => f.name === file.name)) !== -1;
+export const rightClickOnFile = (item) => (dispatch, getState) => {
+    const { selectedItems } = getState();
+    const isSelected = selectedItems.indexOf(selectedItems.find(f => f.name === item.name)) !== -1;
 
-    !isSelected && dispatch(setSelectedFiles([file]));
+    !isSelected && dispatch(setSelectedItems([item]));
 };
 
 export const setLoading = (value) => {

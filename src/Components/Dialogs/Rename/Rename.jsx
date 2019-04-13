@@ -7,6 +7,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import { connect } from 'react-redux';
 import { renameFile, renameFolder, setVisibleDialogRename } from '../../../Actions/Actions.js';
+import { FolderItem } from '../../../Api/Item.js';
 
 class FormDialog extends Component {
 
@@ -15,7 +16,8 @@ class FormDialog extends Component {
     };
 
     componentWillReceiveProps (props) {
-        this.setState({value: props.realName});
+        if (props.item !== null)
+            this.setState({value: props.item.name});
     }
 
     handleChange (event) {
@@ -23,7 +25,7 @@ class FormDialog extends Component {
     }
 
     handleSave (event) {
-        this.props.handleSave(event)(this.props.realName, this.state.value, this.props.type);
+        this.props.handleSave(event)(this.props.item, this.state.value);
     }
 
     render() {
@@ -54,8 +56,7 @@ class FormDialog extends Component {
 const mapStateToProps = (state) => {
     return {
         open: state.visibleDialogRename,
-        realName: state.selectedFiles.length ? state.selectedFiles[0].name : '',
-        type: state.selectedFiles.length ? state.selectedFiles[0].type : ''
+        item: state.selectedItems.length ? state.selectedItems[0] : null,
     };
 };
 
@@ -64,12 +65,12 @@ const mapDispatchToProps = (dispatch, ownProps) => {
         handleClose: event => {
             dispatch(setVisibleDialogRename(false));
         },
-        handleSave: event => (realName, newName, type) => {
+        handleSave: event => (item, newName) => {
             event.preventDefault();
-            if (type === 'dir')
-                dispatch(renameFolder(realName, newName));
+            if (item instanceof FolderItem)
+                dispatch(renameFolder(item.name, newName));
             else
-               dispatch(renameFile(realName, newName));
+                dispatch(renameFile(item.name, newName));
         }
     };
 };
