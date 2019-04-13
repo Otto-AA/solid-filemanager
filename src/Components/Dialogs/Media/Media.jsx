@@ -6,9 +6,9 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import { connect } from 'react-redux';
 import { setVisibleDialogMedia } from '../../../Actions/Actions.js';
-import config from '../../../config.js';
 import Plyr from 'react-plyr';
 import 'plyr/dist/plyr.css';
+import { FileItem } from '../../../Api/Item.js';
 
 class FormDialog extends Component {
     render() {
@@ -34,26 +34,19 @@ class FormDialog extends Component {
 const mapStateToProps = (state) => {
     const open = state.visibleDialogMedia;
 
-    if (state.selectedFiles.length) {
-        const fileName = state.selectedFiles[0].name;
-        const path = state.path;
-        const url = `${config.getHost()}/${path.length ? (path.join('/') + '/') : ''}${fileName}`;
-        const provider = config.isVideoFilePattern.test(fileName) ? 'html5' : 'audio';
-        const type = config.isVideoFilePattern.test(fileName) ? 'video' : 'audio';
+    const file = state.selectedItems[0];   
 
-        return {
-            fileName,
-            url,
-            provider,
-            type,
-            open
-        };
+    if (file instanceof FileItem) {
+            return {
+                open,
+                fileName: file.name,
+                url: file.url,
+                provider: file.isVideo() ? 'html5' : 'audio',
+                type: file.isVideo() ? 'video' : 'audio',
+            };
     }
-    else {
-        return {
-            open
-        };
-    }
+    else
+        return { open };
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {

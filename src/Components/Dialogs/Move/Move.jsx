@@ -14,14 +14,14 @@ class FormDialog extends Component {
     render() {
         const { 
             selectedPath, handleClose, handleSave, open, 
-            selectedFiles, canGoBack, canMove, handleGoBack 
+            selectedItems, canGoBack, canMove, handleGoBack 
         } = this.props;
 
         return (
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-move" fullWidth={true} maxWidth={'sm'}>
                 <form>
                     <DialogTitle id="form-dialog-move">
-                        Move files to <small style={{color: 'grey'}}>{ selectedPath.join('/') }</small>
+                        Move items to <small style={{color: 'grey'}}>{ selectedPath.join('/') }</small>
                     </DialogTitle>
                     <DialogContent>
                         <FileListSublist />
@@ -34,7 +34,7 @@ class FormDialog extends Component {
                         <Button onClick={handleClose} color="primary" type="button">
                             Cancel
                         </Button>
-                        <Button color="primary" onClick={(e) => handleSave(e, selectedFiles)} disabled={!canMove} type="submit">
+                        <Button color="primary" onClick={(e) => handleSave(e, selectedItems)} disabled={!canMove} type="submit">
                             Move
                         </Button>
                     </DialogActions>
@@ -52,7 +52,7 @@ const mapStateToProps = (state) => {
         open: state.visibleDialogMove,
         selectedFolderSublist: state.selectedFolderSublist,
         selectedPath: state.selectedFolderSublist ? [...state.pathSublist, state.selectedFolderSublist.name] : [],
-        selectedFiles: state.selectedFiles,
+        selectedItems: state.selectedItems,
         pathSublist: state.pathSublist,
         canGoBack: state.pathSublist.length,
         canMove: state.selectedFolderSublist && canMove
@@ -65,8 +65,8 @@ const mapDispatchToProps = (dispatch, ownProps) => {
             dispatch(setSelectedFolderSublist(null));
             dispatch(setVisibleDialogMove(false));
         },
-        handleSave: (event, selectedFiles) => {
-            dispatch(moveItems(selectedFiles));
+        handleSave: (event, selectedItems) => {
+            dispatch(moveItems(selectedItems));
         },
         handleGoBack: (event) => {
             dispatch(setSelectedFolderSublist(null));

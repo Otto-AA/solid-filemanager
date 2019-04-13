@@ -42,7 +42,7 @@ class FormDialog extends Component {
         event.preventDefault();
         const content = event.currentTarget.form.querySelector('textarea').value;
 
-        this.props.handleSave(event)(this.props.fileName, content);
+        this.props.handleSave(event)(this.props.itemName, content);
     }
 
     render() {
@@ -81,7 +81,7 @@ class FormDialog extends Component {
 const mapStateToProps = (state) => {
     return {
         open: state.visibleDialogEdit,
-        fileName: state.selectedFiles.length ? state.selectedFiles[0].name : '',
+        itemName: state.selectedItems.length ? state.selectedItems[0].name : '',
         blobUrl: state.fileContentBlobUrl
     };
 };
@@ -94,8 +94,8 @@ const mapDispatchToProps = (dispatch, ownProps) => {
         handleOpen: (event) => {
             dispatch(setVisibleDialogEdit(true));
         },
-        handleSave: (event) => (fileName, content) => {
-            dispatch(updateTextFile(fileName, content));
+        handleSave: (event) => (itemName, content) => {
+            dispatch(updateTextFile(itemName, content));
         }
     };
 };

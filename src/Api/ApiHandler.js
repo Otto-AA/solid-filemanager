@@ -1,6 +1,6 @@
 import * as API from './Api.js';
-import config from './../config.js';
 import * as JSZip from 'jszip';
+import { FileItem, FolderItem } from './Item.js';
 
 
 /**
@@ -227,13 +227,13 @@ export const getAsZip = (path, itemList) => {
  */
 const addItemsToZip = (zip, path, itemList) => {
     const promises = itemList.map(async item => {
-        if (item.type === 'dir') {
+        if (item instanceof FolderItem) {
             const zipFolder = zip.folder(item.name);
             const folderPath = `${path}/${item.name}`;
             const folderItems = await getItemList(folderPath);
             return addItemsToZip(zipFolder, folderPath, folderItems);
         }
-        else if (item.type === 'file') {
+        else if (item instanceof FileItem) {
             const blob = await getFileBlob(path, item.name);
             return zip.file(item.name, blob, { binary: true });
         }
@@ -298,83 +298,6 @@ function getItemsInZipFolder(zip, folderPath) {
         })
         .map(key => zip.files[key]);
 };
-
-
-/**
- * Calculate available actions for a file
- * @param {Object} file
- * @returns {Array<String>}
- */
-export const getActionsByFile = (file, acts = []) => {
-    if (file.type === 'dir') {
-        acts.push('open');
-
-        typeof file.compressible !== 'undefined' ?
-            file.compressible && acts.push('compress') :
-            acts.push('compress');
-    }
-
-    if (file.type === 'file') {
-        config.isImageFilePattern.test(file.name) && acts.push('open');
-        config.isMediaFilePattern.test(file.name) && acts.push('open');
-
-        typeof file.editable !== 'undefined' ?
-            file.editable && acts.push('edit') :
-            config.isEditableFilePattern.test(file.name) && acts.push('edit');
-
-        typeof file.extractable !== 'undefined' ?
-            file.extractable && acts.push('extract') :
-            config.isExtractableFilePattern.test(file.name) && acts.push('extract');
-    }
-
-    acts.push('openInNewTab');
-    acts.push('download');
-    acts.push('copy');
-    acts.push('move');
-    acts.push('rename');
-    acts.push('perms');
-    acts.push('remove');
-
-    return acts;
-}
-
-/**
- * Calculate available actions for selected files, only leaving common actions
- * @param {Array<Object>} files
- * @returns {Array<String>}
- */
-export const getActionsByMultipleFiles = (files, acts = []) => {
-    files.forEach(file => {
-        const fileActs = getActionsByFile(file);
-        // intersects previous actions with the following to leave only common actions
-        acts = acts.length ?
-            acts.filter(value => -1 !== fileActs.indexOf(value)) 
-            : fileActs;
-    });
-
-    if (files.length > 1) {
-        const removeAction = name => acts.splice(acts.indexOf(name), acts.indexOf(name) > -1);
-        const addAction = name => acts.includes(name) || acts.push(name);
-        removeAction('open');
-        removeAction('openInNewTab');
-        removeAction('edit');
-        removeAction('rename');
-
-        addAction('compress');
-    }
-    return acts;
-}
-
-/**
- * Calculate file size by bytes in human readable format
- * @param {Number} bytes
- * @returns {String}
- */
-export const getHumanFileSize = (bytes) => {
-    const e = (Math.log(bytes) / Math.log(1e3)) | 0;
-    return +(bytes / Math.pow(1e3, e)).toFixed(2) + ' ' + ('kMGTPEZY'[e - 1] || '') + 'B';
-};
-
 
 function getItemNameFromPath(path) {
     path = path.endsWith('/') ? path.slice(0, -1) : path;

@@ -4,13 +4,13 @@ export const defaultState = {
     host: null,
     isLoggedIn: false,
     webId: null,
-    fileList: [],
-    fileListSublist: [],
+    itemList: [],
+    itemListSublist: [],
     fileListFilter: null,
     contextMenuVisible: null,
     contextMenuPosition: [],
     contextMenuPositionElement: null,
-    selectedFiles: [],
+    selectedItems: [],
     selectedFolderSublist: null,
     loading: false,
     loadingSublist: false,
@@ -67,13 +67,13 @@ const MainReducer = (state = defaultState, action) => {
             return Object.assign({}, state, {
                 pathSublist: [...state.pathSublist, action.value]
             });
-        case 'SET_FILE_LIST':
+        case 'SET_ITEM_LIST':
             return Object.assign({}, state, {
-                fileList: action.value.sort((a, b) => a.type < b.type ? -1 : a.name.toLowerCase() > b.name.toLowerCase())
+                itemList: action.value.sort((a, b) => a.type < b.type ? -1 : a.name.toLowerCase() > b.name.toLowerCase())
             });
-        case 'SET_FILE_LIST_SUB_LIST':
+        case 'SET_ITEM_LIST_SUB_LIST':
             return Object.assign({}, state, {
-                fileListSublist: action.value.sort((a, b) => a.type < b.type ? -1 : a.name.toLowerCase() > b.name.toLowerCase())
+                itemListSublist: action.value.sort((a, b) => a.type < b.type ? -1 : a.name.toLowerCase() > b.name.toLowerCase())
             });
         case 'SET_FILE_LIST_FILTER':
             return Object.assign({}, state, {
@@ -91,9 +91,9 @@ const MainReducer = (state = defaultState, action) => {
             return Object.assign({}, state, {
                 contextMenuPositionElement: action.value
             });
-        case 'SET_SELECTED_FILES':
+        case 'SET_SELECTED_ITEMS':
             return Object.assign({}, state, {
-                selectedFiles: (action.value).filter((f, i, self) => self.map(ff => ff.name).indexOf(f.name) === i)
+                selectedItems: (action.value).filter((f, i, self) => self.map(ff => ff.name).indexOf(f.name) === i)
             });
         case 'SET_SELECTED_FOLDER_SUB_LIST':
             return Object.assign({}, state, {

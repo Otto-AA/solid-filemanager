@@ -7,9 +7,9 @@ import Typography from '@material-ui/core/Typography';
 import OpenInBrowserIcon from '@material-ui/icons/OpenInBrowser';
 
 function OpenAction(props) {
-    const {handleClick, selectedFiles} = props;
+    const {handleClick, selectedItems} = props;
     return (
-        <MenuItem onClick={(e) => handleClick(e, selectedFiles)}>
+        <MenuItem onClick={(e) => handleClick(e, selectedItems)}>
             <ListItemIcon>
                 <OpenInBrowserIcon />
             </ListItemIcon>
@@ -22,14 +22,14 @@ function OpenAction(props) {
 
 const mapStateToProps = (state) => {
     return {
-        selectedFiles: state.selectedFiles
+        selectedItems: state.selectedItems
     };
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {
     return {
-        handleClick: (event, selectedFiles) => {
-            dispatch(loadAndEditFile(selectedFiles[0].name));
+        handleClick: (event, selectedItems) => {
+            dispatch(loadAndEditFile(selectedItems[0].name));
         }
     };
 };

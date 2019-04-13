@@ -7,10 +7,10 @@ import FileCopyIcon from '@material-ui/icons/FileCopy';
 import { initSubList, setVisibleDialogCopy } from '../../../Actions/Actions.js';
 
 function CopyAction(props) {
-    const {handleClick, selectedFiles} = props;
+    const {handleClick} = props;
 
     return (
-        <MenuItem onClick={(e) => handleClick(e, selectedFiles)}>
+        <MenuItem onClick={(e) => handleClick(e)}>
             <ListItemIcon>
                 <FileCopyIcon />
             </ListItemIcon>
@@ -22,14 +22,12 @@ function CopyAction(props) {
 }
 
 const mapStateToProps = (state) => {
-    return {
-        selectedFiles: state.selectedFiles
-    };
+    return {};
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {
     return {
-        handleClick: (event, selectedFiles) => {
+        handleClick: (event) => {
             dispatch(initSubList());
             dispatch(setVisibleDialogCopy(true));
         }

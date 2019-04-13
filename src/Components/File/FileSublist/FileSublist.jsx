@@ -13,6 +13,7 @@ import FolderIcon from '@material-ui/icons/Folder';
 import FileIcon from '@material-ui/icons/InsertDriveFile';
 import blue from '@material-ui/core/colors/blue';
 import '../File.css';
+import { FileItem } from '../../../Api/Item.js';
 
 const styles = theme => ({
 });
@@ -20,7 +21,7 @@ const styles = theme => ({
 
 class FileSublist extends Component {
     render() {
-        const { type, name, handleClick, isSelected, handleDoubleClick } = this.props;
+        const { item, handleClick, isSelected, handleDoubleClick } = this.props;
         const avatarStyle = {
             backgroundColor: isSelected ? blue['A200'] : null
         };
@@ -29,10 +30,10 @@ class FileSublist extends Component {
                 <ListItem>
                     <ListItemAvatar>
                         <Avatar style={avatarStyle}>
-                            { type === 'dir' ? <FolderIcon /> : <FileIcon />}
+                            { (item instanceof FileItem) ? <FileIcon /> : <FolderIcon />}
                         </Avatar>
                     </ListItemAvatar>
-                    <ListItemText primary={name} secondary="" />
+                    <ListItemText primary={item.name} secondary="" />
                 </ListItem>
             </div>
         );
@@ -42,8 +43,7 @@ class FileSublist extends Component {
 
 const mapStateToProps = (state, ownProps) => {
     return {
-        filePath: [...state.path, ownProps.name],
-        isSelected: state.selectedFolderSublist && (state.selectedFolderSublist.name === ownProps.name)
+        isSelected: state.selectedFolderSublist && (state.selectedFolderSublist.equals(ownProps.item))
     };
 };
 
@@ -54,7 +54,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
          * @returns {undefined}
          */
         handleDoubleClick: (event) => {
-            dispatch(enterToDirectorySublist(ownProps.name));
+            dispatch(enterToDirectorySublist(ownProps.item.name));
             dispatch(setSelectedFolderSublist(null));
         },
 
@@ -63,8 +63,8 @@ const mapDispatchToProps = (dispatch, ownProps) => {
          * @returns {undefined}
          */
         handleClick: (event) => {
-            event.stopPropagation(); 
-            dispatch(setSelectedFolderSublist(ownProps));
+            event.stopPropagation();
+            dispatch(setSelectedFolderSublist(ownProps.item));
         }
     };
 };

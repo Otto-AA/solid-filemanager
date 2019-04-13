@@ -4,39 +4,40 @@ import FileSublist from '../../File//FileSublist/FileSublist.jsx';
 import Loader from '../../Loader/Loader.jsx'; 
 import FileListEmptyMessage from '../FileListEmptyMessage';
 import './FileListSublist.css'; 
+import { FolderItem } from '../../../Api/Item.js';
 
 class FileListSublist extends Component {
     render() {
-        const { fileList, loadingSublist } = this.props;
+        const { itemList, loadingSublist } = this.props;
         
-        const fileListComponent = fileList.map((file, key) => {
-            return <FileSublist type={file.type} name={file.name} key={key} />
+        const itemComponents = itemList.map((item, key) => {
+            return <FileSublist item={item} key={key} />
         });
 
         return <div className="FileListSublist">
             { loadingSublist ? 
                 <Loader /> : 
-                fileListComponent.length ? fileListComponent : <FileListEmptyMessage />
+                itemComponents.length ? itemComponents : <FileListEmptyMessage />
             }
         </div>
     }
 }
 
 const mapStateToProps = (state) => {
-    const filteredList = state.fileListSublist
-        .filter(file => file.type === 'dir')
-        .filter(file => state.path.join('').trim() === state.pathSublist.join('').trim() ? 
-            !state.selectedFiles.find(f => f.name === file.name) : true
+    const itemList = state.itemListSublist
+        .filter(item => item instanceof FolderItem)
+        .filter(item => state.path.join('').trim() === state.pathSublist.join('').trim() ? 
+            !state.selectedItems.some(selectedItem => selectedItem.equals(item)) : true
         );
+
     return {
-        fileList: filteredList,
+        itemList,
         loadingSublist: state.loadingSublist,
     };
 };
 
 const mapDispatchToProps = (dispatch) => {
-    return {
-    };
+    return {};
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(FileListSublist);

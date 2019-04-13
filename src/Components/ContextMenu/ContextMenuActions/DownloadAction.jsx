@@ -5,16 +5,17 @@ import { downloadItems } from '../../../Actions/Actions.js';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Typography from '@material-ui/core/Typography';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import { FileItem } from '../../../Api/Item.js';
 
 function DownloadAction(props) {
-    const {handleClick, selectedFiles} = props;
+    const {handleClick, selectedItems} = props;
     return (
-        <MenuItem onClick={(e) => handleClick(e, selectedFiles)}>
+        <MenuItem onClick={(e) => handleClick(e, selectedItems)}>
             <ListItemIcon>
                 <CloudDownloadIcon />
             </ListItemIcon>
             <Typography variant="inherit">
-                {(selectedFiles.length === 1 && selectedFiles[0].type === 'file') ? 
+                {(selectedItems.length === 1 && selectedItems[0] instanceof FileItem) ? 
                     'Download'
                     : 'Download Zip'
                 }
@@ -25,14 +26,14 @@ function DownloadAction(props) {
 
 const mapStateToProps = (state) => {
     return {
-        selectedFiles: state.selectedFiles
+        selectedItems: state.selectedItems
     };
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {
     return {
-        handleClick: (event, selectedFiles) => {
-            dispatch(downloadItems(selectedFiles));
+        handleClick: (event, selectedItems) => {
+            dispatch(downloadItems(selectedItems));
         }
     };
 };

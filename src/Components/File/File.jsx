@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {
     enterToDirectory, setContextMenuVisible, toggleSelectedFile, setContextMenuPosition,
-    setSelectedFileFromLastTo, loadAndEditFile, loadAndDisplayFile, displayMediaFile,
-    rightClickOnFile, setSelectedFiles
+    setSelectedFileFromLastTo, loadAndEditFile, loadAndDisplayFile, displaySelectedMediaFile,
+    rightClickOnFile, setSelectedItems
 } from '../../Actions/Actions.js';
 import './File.css';
 
@@ -15,25 +14,24 @@ import Avatar from '@material-ui/core/Avatar';
 import FolderIcon from '@material-ui/icons/Folder';
 import FileIcon from '@material-ui/icons/InsertDriveFile';
 import blue from '@material-ui/core/colors/blue';
-import config from '../../config.js';
-import { getHumanFileSize } from '../../Api/ApiHandler';
+import { FileItem } from '../../Api/Item.js';
 
 class File extends Component {
     render() {
-        const { isSelected, type, name, size, handleClick, handleDoubleClick, handleContextMenu } = this.props;
+        const { isSelected, item, handleClick, handleDoubleClick, handleContextMenu } = this.props;
         const avatarStyle = {
             backgroundColor: isSelected ? blue['A200'] : null
         };
-        const realSize = typeof size !== 'undefined' && type !== 'dir' ? getHumanFileSize(size) : null;
+        const realSize = (item instanceof FileItem) ? item.getDisplaySize() : null;
         return (
             <div className="File" onClick={handleClick} onDoubleClick={handleDoubleClick} onContextMenu={handleContextMenu} data-selected={isSelected}>
                 <ListItem>
                     <ListItemAvatar>
                         <Avatar style={avatarStyle}>
-                            { type === 'dir' ? <FolderIcon /> : <FileIcon />}
+                            { (item instanceof FileItem) ? <FileIcon /> : <FolderIcon />}
                         </Avatar>
                     </ListItemAvatar>
-                    <ListItemText className="filename" primary={decodeURI(name)} secondary={realSize} />
+                    <ListItemText className="filename" primary={item.getDisplayName()} secondary={realSize} />
                 </ListItem>
             </div>
         );
@@ -43,8 +41,7 @@ class File extends Component {
 
 const mapStateToProps = (state, ownProps) => {
     return {
-        filePath: [...state.path, ownProps.name],
-        isSelected: !!state.selectedFiles.find(f => f.name === ownProps.name)
+        isSelected: state.selectedItems.some(item => item.equals(ownProps.item))
     };
 };
 
@@ -55,18 +52,18 @@ const mapDispatchToProps = (dispatch, ownProps) => {
          * @returns {undefined}
          */
         handleDoubleClick: (event) => {
-            if (ownProps.type === 'file') {
-                if (config.isEditableFilePattern.test(ownProps.name) || ownProps.editable) {
-                    dispatch(loadAndEditFile(ownProps.name));
-                } else if (config.isImageFilePattern.test(ownProps.name)) {
-                    dispatch(loadAndDisplayFile(ownProps.name));
-                } else if (config.isMediaFilePattern.test(ownProps.name)) {
-                    dispatch(displayMediaFile(ownProps.name));
-                }
-                return;
-            }
+            const item = ownProps.item;
 
-            dispatch(enterToDirectory(ownProps.name));
+            if (item instanceof FileItem) {
+                if (item.isEditable())
+                    dispatch(loadAndEditFile(item.name));
+                else if (item.isImage())
+                    dispatch(loadAndDisplayFile(item.name));
+                else if (item.isMedia())
+                    dispatch(displaySelectedMediaFile());
+            }
+            else
+                dispatch(enterToDirectory(item.name));
         },
 
         /**
@@ -81,9 +78,9 @@ const mapDispatchToProps = (dispatch, ownProps) => {
             const y = event.clientY || (event.touches && event.touches[0].pageY);
 
             if (event.shiftKey) {
-                dispatch(setSelectedFileFromLastTo(ownProps));
+                dispatch(setSelectedFileFromLastTo(ownProps.item));
             } else {
-                dispatch(rightClickOnFile(ownProps));
+                dispatch(rightClickOnFile(ownProps.item));
             }
             
             dispatch(setContextMenuVisible(true));
@@ -98,27 +95,14 @@ const mapDispatchToProps = (dispatch, ownProps) => {
             event.stopPropagation();
 
             if (event.ctrlKey) {
-                dispatch(toggleSelectedFile(ownProps));
+                dispatch(toggleSelectedFile(ownProps.item));
             } else if (event.shiftKey) {
-                dispatch(setSelectedFileFromLastTo(ownProps));
+                dispatch(setSelectedFileFromLastTo(ownProps.item));
             } else {
-                dispatch(setSelectedFiles([ownProps]));
+                dispatch(setSelectedItems([ownProps.item]));
             }
         }
     };
 };
 
-File.propTypes = {
-    name: PropTypes.string.isRequired,
-    type: PropTypes.string.isRequired,
-    size: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.number
-    ]),
-    editable: PropTypes.oneOfType([
-        PropTypes.bool, PropTypes.number
-    ])
-};
-
 export default connect(mapStateToProps, mapDispatchToProps)(File);
-

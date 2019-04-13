@@ -7,9 +7,9 @@ import Typography from '@material-ui/core/Typography';
 import LinkIcon from '@material-ui/icons/Link';
 
 function OpenInNewTabAction(props) {
-    const {handleClick, selectedFiles} = props;
+    const {handleClick, selectedItems} = props;
     return (
-        <MenuItem onClick={(e) => handleClick(e, selectedFiles)}>
+        <MenuItem onClick={(e) => handleClick(e, selectedItems)}>
             <ListItemIcon>
                 <LinkIcon   />
             </ListItemIcon>
@@ -22,14 +22,14 @@ function OpenInNewTabAction(props) {
 
 const mapStateToProps = (state) => {
     return {
-        selectedFiles: state.selectedFiles
+        selectedItems: state.selectedItems
     };
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {
     return {
-        handleClick: (event, selectedFiles) => {
-            dispatch(openInNewTab(selectedFiles[0].name));
+        handleClick: (event, selectedItems) => {
+            dispatch(openInNewTab(selectedItems[0]));
         }
     };
 };
