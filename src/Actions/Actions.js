@@ -73,8 +73,8 @@ export const updateLoginStatus = () => async (dispatch, getState) => {
         dispatch(setWebId(null));
     }
     else {
-        dispatch(setIsLoggedIn(true));
         dispatch(setWebId(session.webId));
+        dispatch(setIsLoggedIn(true));
     }
 }
 
