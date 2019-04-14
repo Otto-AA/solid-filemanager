@@ -62,11 +62,14 @@ const fixPath = (path) => {
 
 /**
  * Wrap API response for retrieving item list
+ * itemList is cached automatically
  * @param {String} path
  * @returns {Promise<API.FolderItems>}
  */
 export const getItemList = (path) => {
     path = fixPath(path);
+    if (cache.contains(path))
+	return Promise.resolve(cache.get(path));
     return API.readFolder(path)
         .then(({ files, folders }) => [...files, ...folders])
         .then(itemList => cache.add(path, itemList))
@@ -74,16 +77,10 @@ export const getItemList = (path) => {
 };
 
 /**
- * 
  * @param {String} path 
- * @returns {Promise<API.FolderItems>}
  */
-export const getCachedItemList = (path) => {
-    path = fixPath(path);
-    if (cache.contains(path))
-        return Promise.resolve(cache.get(path));
-    return getItemList(path);
-};
+export const clearCacheForFolder = (path) => cache.remove(fixPath(path));
+export const clearCache = () => cache.clear();
 
 /**
  * Wrap API response for retrieving file content
@@ -108,6 +105,7 @@ export const getFileBlob = (path, filename) => {
  */
 export const renameFile = (path, fileName, newFileName) => {
     path = fixPath(path);
+    cache.remove(path);
     return API.renameFile(path, fileName, newFileName)
         .catch(handleFetchError)
 };
@@ -122,6 +120,7 @@ export const renameFile = (path, fileName, newFileName) => {
  */
 export const renameFolder = (path, folderName, newFolderName) => {
     path = fixPath(path);
+    cache.remove(path);
     return API.renameFolder(path, folderName, newFolderName)
         .catch(handleFetchError)
 };
@@ -134,6 +133,7 @@ export const renameFolder = (path, folderName, newFolderName) => {
  */
 export const createFolder = (path, folder) => {
     path = fixPath(path);
+    cache.remove(path);
     if (!(folder || '').trim()) {
         return Promise.reject('Invalid folder name');
     }
@@ -149,6 +149,7 @@ export const createFolder = (path, folder) => {
  */
 export const removeItems = (path, filenames) => {
     path = fixPath(path);
+    cache.remove(path);
     if (!filenames.length) {
         return Promise.reject('No files to remove');
     }
@@ -165,6 +166,7 @@ export const removeItems = (path, filenames) => {
  */
 export const moveItems = (path, destination, filenames) => {
     path = fixPath(path);
+    cache.remove(path, destination);
     destination = fixPath(destination);
     if (!filenames.length) {
         return Promise.reject('No files to move');
@@ -182,6 +184,7 @@ export const moveItems = (path, destination, filenames) => {
  */
 export const copyItems = (path, destination, filenames) => {
     path = fixPath(path);
+    cache.remove(path, destination);
     destination = fixPath(destination);
     if (!filenames.length) {
         return Promise.reject('No files to copy');
@@ -198,6 +201,7 @@ export const copyItems = (path, destination, filenames) => {
  */
 export const uploadFiles = (path, fileList) => {
     path = fixPath(path);
+    cache.remove(path);
 
     if (!fileList.length) {
         return Promise.reject('No files to upload');
@@ -215,6 +219,7 @@ export const uploadFiles = (path, fileList) => {
  */
 export const updateFile = (path, fileName, content) => {
     path = fixPath(path);
+    cache.remove(path);
     return API.updateItem(path, fileName, content)
         .catch(handleFetchError);
 };
@@ -266,6 +271,7 @@ const addItemsToZip = (zip, path, itemList) => {
 export const extractZipArchive = async (path, destination = path, fileName) => {
     const blob = await getFileBlob(path, fileName);
     const zip = await JSZip.loadAsync(blob);
+    cache.remove(path, destination);
 
     return uploadExtractedZipArchive(zip, destination);
 };

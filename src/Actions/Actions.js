@@ -77,7 +77,8 @@ export const solidLogout = () => (dispatch, getState) => {
         dispatch(setPath([]));
         dispatch(setPathSublist([]));
         dispatch(setItemList([]));
-        dispatch(setSelectedItems([])); // TODO
+        dispatch(setSelectedItems([]));
+        APIHandler.clearCache();
         dispatch(setIsLoggedIn(false));
         dispatch(setWebId(''));
         dispatch(setVisibleDialogSolidLogout(false));
@@ -108,7 +109,7 @@ export const uploadFiles = (fileList) => (dispatch, getState) => {
         setTimeout(f => {
             dispatch(resetFileUploader());
         }, 300);
-        dispatch(refreshItemList());
+        dispatch(displayCurrentItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -125,7 +126,7 @@ export const createFile = (fileName) => (dispatch, getState) => {
 
     APIHandler.updateFile(path.join('/'), fileName, '').then(r => {
         dispatch(setVisibleDialogCreateFile(false));
-        dispatch(refreshItemList());
+        dispatch(displayCurrentItemList());
 
         APIHandler.getItemList(path.join('/')).then(itemList => {
             const item = itemList.find(item => item.name === fileName || item.name === encodeURI(fileName));
@@ -143,7 +144,7 @@ export const updateTextFile = (fileName, content) => (dispatch, getState) => {
 
     APIHandler.updateFile(path.join('/'), fileName, content).then(r => {
         dispatch(setVisibleDialogEdit(false));
-        dispatch(refreshItemList());
+        dispatch(displayCurrentItemList());
         dispatch(setLoading(false));
     }).catch(r => {
         dispatch({
@@ -158,11 +159,11 @@ export const updateTextFile = (fileName, content) => (dispatch, getState) => {
  * Request API to get file list for the selected path then refresh UI
  * @returns {Function}
  */
-export const loadCachedItemList = () => (dispatch, getState) => {
+export const displayCurrentItemList = () => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
     dispatch(setSelectedItems([]));
-    APIHandler.getCachedItemList(path.join('/')).then(items => {
+    APIHandler.getItemList(path.join('/')).then(items => {
         dispatch(setLoading(false));
         dispatch(setItemList(items));
     }).catch(r => {
@@ -180,20 +181,9 @@ export const loadCachedItemList = () => (dispatch, getState) => {
  */
 export const refreshItemList = () => (dispatch, getState) => {
     const { path } = getState();
-    dispatch(setLoading(true));
-    dispatch(setSelectedItems([]));
-    APIHandler.getItemList(path.join('/')).then(items => {
-        dispatch(setLoading(false));
-        dispatch(setItemList(items));
-    }).catch(r => {
-        dispatch(setItemList([]));
-        dispatch({
-            type: 'SET_ERROR_MSG',
-            value: r.toString()
-        });
-        dispatch(setLoading(false));
-    });
-}
+    APIHandler.clearCacheForFolder(path);
+    return displayCurrentItemList();
+};
 
 
 /**
@@ -205,7 +195,7 @@ export const updateItemListSublist = () => (dispatch, getState) => {
     dispatch(setLoadingSublist(true));
     dispatch(setSelectedFolderSublist(null));
 
-    APIHandler.getCachedItemList(pathSublist.join('/')).then(r => {
+    APIHandler.getItemList(pathSublist.join('/')).then(r => {
         dispatch(setLoadingSublist(false));
         dispatch(setItemListSublist(r));
     }).catch(r => {
@@ -230,7 +220,7 @@ export const renameFile = (fileName, newFileName) => (dispatch, getState) => {
     APIHandler.renameFile(path.join('/'), fileName, newFileName).then(blob => {
         dispatch(setVisibleDialogRename(false));
         dispatch(setLoading(false));
-        dispatch(refreshItemList());
+        dispatch(displayCurrentItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -252,7 +242,7 @@ export const renameFolder = (folderName, newFolderName) => (dispatch, getState) 
     APIHandler.renameFolder(path.join('/'), folderName, newFolderName).then(blob => {
         dispatch(setVisibleDialogRename(false));
         dispatch(setLoading(false));
-        dispatch(refreshItemList());
+        dispatch(displayCurrentItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -313,7 +303,7 @@ export const zipAndUpload = (itemList) => (dispatch, getState) => {
         .then(blob => APIHandler.updateFile(path.join('/'), archiveName, blob))
         .then(() => {
             dispatch(setLoading(false));
-            dispatch(refreshItemList());
+            dispatch(displayCurrentItemList());
         })
         .catch(r => {
             dispatch({
@@ -335,7 +325,7 @@ export const extractZipFile = (fileName) => (dispatch, getState) => {
     dispatch(setLoading(true));
     APIHandler.extractZipArchive(path.join('/'), path.join('/'), fileName).then(r => {
         dispatch(setLoading(false));
-        dispatch(refreshItemList());
+        dispatch(displayCurrentItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -437,7 +427,7 @@ export const createNewFolder = (createFolderName) => (dispatch, getState) => {
     APIHandler.createFolder(path.join('/'), createFolderName).then(r => {
         dispatch(setVisibleDialogCreateFolder(false));
         dispatch(setLoading(false));
-        dispatch(refreshItemList());
+        dispatch(displayCurrentItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -460,7 +450,7 @@ export const removeItems = (items) => (dispatch, getState) => {
     dispatch(setLoading(true));
     APIHandler.removeItems(path.join('/'), itemNames).then(r => {
         dispatch(setLoading(false));
-        dispatch(refreshItemList());
+        dispatch(displayCurrentItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -485,7 +475,7 @@ export const moveItems = (items) => (dispatch, getState) => {
     APIHandler.moveItems(path.join('/'), destination, itemNames).then(r => {
         dispatch(setLoading(false));
         dispatch(setVisibleDialogMove(false));
-        dispatch(refreshItemList());
+        dispatch(displayCurrentItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -508,10 +498,9 @@ export const copyItems = (items) => (dispatch, getState) => {
 
     dispatch(setLoading(true));
     APIHandler.copyItems(path.join('/'), destination, itemNames).then(r => {
-        alert('response');
         dispatch(setLoading(false));
         dispatch(setVisibleDialogCopy(false));
-        dispatch(refreshItemList());
+        dispatch(displayCurrentItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -581,7 +570,7 @@ export const enterFolderByItem = (item) => (dispatch, getState) => {
 export const enterFolderWithoutUpdatingHistory = (path) => (dispatch, getState) => {
     dispatch(setPath(path));
     dispatch(setFileListFilter(null));
-    dispatch(loadCachedItemList());
+    dispatch(displayCurrentItemList());
 };
 
 export const enterToPreviousDirectory = () => (dispatch, getState) => {
