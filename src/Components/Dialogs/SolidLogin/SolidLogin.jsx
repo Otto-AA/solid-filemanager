@@ -6,33 +6,39 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
 import { connect } from 'react-redux';
-import { solidLogin, setVisibleDialogSolidLogin, refreshFileList } from '../../../Actions/Actions.js';
-import config from '../../../config.js';
+import { solidLogin, setVisibleDialogSolidLogin, setHost, enterFolder, getLocationObjectFromUrl } from '../../../Actions/Actions.js';
 
 class FormDialog extends Component {
     state = {
-      storageLocation: null,
+      location: null,
     };
 
     componentWillReceiveProps(props) {
       const { isLoggedIn, webId } = props;
-      if (isLoggedIn) {
-        const storageLocation = (new URL(webId)).origin;
-        this.setState({ storageLocation });
+      const params = new URLSearchParams(document.location.search.substr(1));
+      const encodedUrl = params.get('url');
+
+      if (encodedUrl !== null) {
+        const location = decodeURI(encodedUrl);
+        this.setState({ location });
+      }
+      else if (isLoggedIn) {
+        const location = (new URL(webId)).origin;
+        this.setState({ location });
       }
     }
 
     handleChange (event) {
-      const storageLocation = event.currentTarget.form.querySelector('input').value;
-      this.setState({ storageLocation });
+      const location = event.currentTarget.form.querySelector('input').value;
+      this.setState({ location });
     }
 
     handleSubmit (event) {
-        this.props.handleSubmit(event)(this.state.storageLocation);
+        this.props.handleSubmit(event)(this.state.location);
     }
 
     render() {
-        let { storageLocation } = this.state;
+        let { location } = this.state;
         const { handleClose, handleLogin, open, isLoggedIn } = this.props;
 
         return (
@@ -47,8 +53,8 @@ class FormDialog extends Component {
                     {
                       isLoggedIn && (
                         <div>
-                          <p>Please enter your pods storage location</p>
-                          <TextField autoFocus fullWidth margin="dense" label="Storage Location" type="text" onChange={this.handleChange.bind(this)} value={storageLocation} />
+                          <p>Please enter the full url to the directory you want to open</p>
+                          <TextField autoFocus fullWidth margin="dense" label="Directory Location" type="text" onChange={this.handleChange.bind(this)} value={location} />
                         </div>
                       )
                     }
@@ -58,7 +64,7 @@ class FormDialog extends Component {
                       Cancel
                     </Button>
                     <Button color="primary" type="submit" onClick={this.handleSubmit.bind(this)} disabled={!isLoggedIn}>
-                      Enter your Pod
+                      Open directory
                     </Button>
                   </DialogActions>
                 </form>
@@ -84,11 +90,12 @@ const mapDispatchToProps = (dispatch, ownProps) => {
             event.preventDefault();
             dispatch(solidLogin());
         },
-        handleSubmit: event => (storageLocation) => {
+        handleSubmit: event => (location) => {
             event.preventDefault();
-            config.setHost(storageLocation);
+            const { host, path } = getLocationObjectFromUrl(location);
             dispatch(setVisibleDialogSolidLogin(false));
-            dispatch(refreshFileList());
+            dispatch(setHost(host));
+            dispatch(enterFolder(path));
         }
     };
 };

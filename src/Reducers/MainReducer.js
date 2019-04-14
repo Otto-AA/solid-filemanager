@@ -1,3 +1,5 @@
+import config from '../config.js';
+
 export const defaultState = {
     path: [],
     pathSublist: [],
@@ -48,6 +50,7 @@ const MainReducer = (state = defaultState, action) => {
                 pathSublist: action.value
             });
         case 'SET_HOST':
+            config.setHost(action.value);
             return Object.assign({}, state, {
                 host: action.value
             });
@@ -58,10 +61,6 @@ const MainReducer = (state = defaultState, action) => {
         case 'SET_WEB_ID':
             return Object.assign({}, state, {
                 webId: action.value
-            });
-        case 'ENTER_TO_DIRECTORY':
-            return Object.assign({}, state, {
-                path: [...state.path, action.value]
             });
         case 'ENTER_TO_DIRECTORY_SUB_LIST':
             return Object.assign({}, state, {

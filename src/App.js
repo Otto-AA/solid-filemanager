@@ -7,7 +7,7 @@ import Dialogs from './Components/Dialogs/Dialogs.jsx';
 import { MuiThemeProvider as MaterialUI, createMuiTheme } from '@material-ui/core/styles';
 import blue from '@material-ui/core/colors/blue';
 import { connect } from 'react-redux';
-import { setContextMenuVisible, setVisibleDialogSolidLogin } from './Actions/Actions.js';
+import { setContextMenuVisible, setVisibleDialogSolidLogin, initBrowserHistory } from './Actions/Actions.js';
 import DynamicSnackbar from './Components/Notification/DynamicSnackbar.jsx'; 
 
 const theme = createMuiTheme({
@@ -48,6 +48,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         init: () => {
+			dispatch(initBrowserHistory());
             dispatch(setVisibleDialogSolidLogin(true));
         },
 

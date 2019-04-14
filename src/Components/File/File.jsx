@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import {
-    enterToDirectory, setContextMenuVisible, toggleSelectedFile, setContextMenuPosition,
+    setContextMenuVisible, toggleSelectedFile, setContextMenuPosition,
     setSelectedFileFromLastTo, loadAndEditFile, loadAndDisplayFile, displaySelectedMediaFile,
-    rightClickOnFile, setSelectedItems
+    rightClickOnFile, setSelectedItems, enterFolderByItem
 } from '../../Actions/Actions.js';
 import './File.css';
 
@@ -63,7 +63,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
                     dispatch(displaySelectedMediaFile());
             }
             else
-                dispatch(enterToDirectory(item.name));
+                dispatch(enterFolderByItem(item));
         },
 
         /**

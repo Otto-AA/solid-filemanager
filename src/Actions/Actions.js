@@ -1,8 +1,48 @@
 import * as APIHandler from '../Api/ApiHandler.js';
 import * as solidAuth from 'solid-auth-client';
+import { createBrowserHistory } from 'history';
 // eslint-disable-next-line no-unused-vars
 import { Item, FileItem, FolderItem } from '../Api/Item.js';
 
+// Note: This doesn't seem like a good way to handle this, but it's the best I've come up with for now.
+// Feel free to change in the future
+let history;
+export const initBrowserHistory = () => (dispatch, getState) => {
+	history = createBrowserHistory();
+	history.listen((location, action) => {
+		if (action === 'POP') {
+            let host, path;
+            if (location && typeof location.state !== typeof undefined) {
+                ({ host, path } = location.state);
+            }
+            else {
+                const params = new URLSearchParams(location.search.substr(1));
+                const url = params.get('url');
+                if (url !== null) {
+                    ({ host, path } = getLocationObjectFromUrl(url));
+                }
+            }
+            dispatch(setHost(host));
+            dispatch(enterFolderWithoutUpdatingHistory(path));
+		}
+	});
+};
+export const updateBrowserHistory = () => (dispatch, getState) => {
+    const { host, path } = getState();
+    const url = `${host}/${path.join('/')}`;
+	history.push(`?url=${encodeURI(url)}`, { host, path });
+}
+
+export const getLocationObjectFromUrl = (url) => {
+    url = new URL(url);
+    const host = url.origin;
+    const path = url.pathname.split('/').filter(val => val !== '');
+
+    return {
+        host,
+        path
+    };
+}
 
 export const solidLogin = () => (dispatch, getState) => {
     dispatch(setLoading(true));
@@ -505,19 +545,33 @@ export const resetFileUploader = () => (dispatch, getState) => {
     dispatch(setFileUploadList([]));
 };
 
-export const enterToPreviousDirectory = () => (dispatch, getState) => {
-    const { path } = getState();
-    dispatch(setPath(path.slice(0, -1)));
+
+export const enterFolder = (path) => (dispatch, getState) => {
+    dispatch(enterFolderWithoutUpdatingHistory(path));
+    dispatch(updateBrowserHistory());
+};
+
+export const enterFolderByItem = (item) => (dispatch, getState) => {
+    const path = item.path;
+    // Open containing folder if it is a file
+    dispatch(enterFolderWithoutUpdatingHistory(item instanceof FileItem ? path : [...path, item.name]));
+    dispatch(updateBrowserHistory());
+};
+
+export const enterFolderWithoutUpdatingHistory = (path) => (dispatch, getState) => {
+    dispatch(setPath(path));
     dispatch(setFileListFilter(null));
     dispatch(refreshFileList());
 };
 
+export const enterToPreviousDirectory = () => (dispatch, getState) => {
+    const { path } = getState();
+    dispatch(enterFolder(path.slice(0, -1)));
+};
+
 export const enterToPreviousDirectoryByIndex = (index) => (dispatch, getState) => {
     const { path } = getState();
-    const newPath = [...path].slice(0, ++index);
-    dispatch(setPath(newPath));
-    dispatch(refreshFileList());
-    dispatch(setFileListFilter(null));
+    dispatch(enterFolder([...path].slice(0, ++index)));
 };
 
 export const enterToPreviousDirectorySublist = () => (dispatch, getState) => {
@@ -559,15 +613,6 @@ export const setWebId = (webId) => {
         type: 'SET_WEB_ID',
         value: webId
     };
-};
-
-export const enterToDirectory = (directory) => (dispatch, getState) => {
-    dispatch({
-        type: 'ENTER_TO_DIRECTORY',
-        value: directory
-    });
-    dispatch(setFileListFilter(null));
-    dispatch(refreshFileList());
 };
 
 export const enterToDirectorySublist = (directory) => (dispatch, getState) => {

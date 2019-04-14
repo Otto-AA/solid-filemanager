@@ -1,7 +1,7 @@
 import React from 'react';
 import MenuItem from '@material-ui/core/MenuItem';
 import { connect } from 'react-redux';
-import { loadAndDisplayFile, displaySelectedMediaFile, loadAndEditFile, enterToDirectory } from '../../../Actions/Actions.js';
+import { loadAndDisplayFile, displaySelectedMediaFile, loadAndEditFile, enterFolderByItem } from '../../../Actions/Actions.js';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Typography from '@material-ui/core/Typography';
 import OpenInBrowserIcon from '@material-ui/icons/OpenInBrowser';
@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
             const item = selectedItems[0];
 
             if (item instanceof FolderItem)
-                dispatch(enterToDirectory(item.name));
+                dispatch(enterFolderByItem(item));
             else if (item instanceof FileItem) {
                 if (item.isEditable())
                     dispatch(loadAndEditFile(item.name));
