@@ -108,7 +108,7 @@ export const uploadFiles = (fileList) => (dispatch, getState) => {
         setTimeout(f => {
             dispatch(resetFileUploader());
         }, 300);
-        dispatch(loadCachedItemList());
+        dispatch(refreshItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -125,7 +125,7 @@ export const createFile = (fileName) => (dispatch, getState) => {
 
     APIHandler.updateFile(path.join('/'), fileName, '').then(r => {
         dispatch(setVisibleDialogCreateFile(false));
-        dispatch(loadCachedItemList());
+        dispatch(refreshItemList());
 
         APIHandler.getItemList(path.join('/')).then(itemList => {
             const item = itemList.find(item => item.name === fileName || item.name === encodeURI(fileName));
@@ -143,7 +143,7 @@ export const updateTextFile = (fileName, content) => (dispatch, getState) => {
 
     APIHandler.updateFile(path.join('/'), fileName, content).then(r => {
         dispatch(setVisibleDialogEdit(false));
-        dispatch(loadCachedItemList());
+        dispatch(refreshItemList());
         dispatch(setLoading(false));
     }).catch(r => {
         dispatch({
