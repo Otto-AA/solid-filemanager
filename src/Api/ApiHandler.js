@@ -166,8 +166,8 @@ export const removeItems = (path, filenames) => {
  */
 export const moveItems = (path, destination, filenames) => {
     path = fixPath(path);
-    cache.remove(path, destination);
     destination = fixPath(destination);
+    cache.remove(path, destination);
     if (!filenames.length) {
         return Promise.reject('No files to move');
     }
@@ -184,8 +184,8 @@ export const moveItems = (path, destination, filenames) => {
  */
 export const copyItems = (path, destination, filenames) => {
     path = fixPath(path);
-    cache.remove(path, destination);
     destination = fixPath(destination);
+    cache.remove(path, destination);
     if (!filenames.length) {
         return Promise.reject('No files to copy');
     }
@@ -271,7 +271,6 @@ const addItemsToZip = (zip, path, itemList) => {
 export const extractZipArchive = async (path, destination = path, fileName) => {
     const blob = await getFileBlob(path, fileName);
     const zip = await JSZip.loadAsync(blob);
-    cache.remove(path, destination);
 
     return uploadExtractedZipArchive(zip, destination);
 };

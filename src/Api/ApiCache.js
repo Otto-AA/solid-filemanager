@@ -38,8 +38,9 @@ export default class ApiCache {
     /**
      * @param {Array<String>} path
      */
-    remove(path) {
-        delete this._data[path];
+    remove(...paths) {
+        paths.filter(path => this.contains(path))
+            .forEach(path => delete this._data[path]);
     }
 
     clear() {
