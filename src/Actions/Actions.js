@@ -108,7 +108,7 @@ export const uploadFiles = (fileList) => (dispatch, getState) => {
         setTimeout(f => {
             dispatch(resetFileUploader());
         }, 300);
-        dispatch(refreshFileList());
+        dispatch(loadCachedItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -125,7 +125,7 @@ export const createFile = (fileName) => (dispatch, getState) => {
 
     APIHandler.updateFile(path.join('/'), fileName, '').then(r => {
         dispatch(setVisibleDialogCreateFile(false));
-        dispatch(refreshFileList());
+        dispatch(loadCachedItemList());
 
         APIHandler.getItemList(path.join('/')).then(itemList => {
             const item = itemList.find(item => item.name === fileName || item.name === encodeURI(fileName));
@@ -143,7 +143,7 @@ export const updateTextFile = (fileName, content) => (dispatch, getState) => {
 
     APIHandler.updateFile(path.join('/'), fileName, content).then(r => {
         dispatch(setVisibleDialogEdit(false));
-        dispatch(refreshFileList());
+        dispatch(loadCachedItemList());
         dispatch(setLoading(false));
     }).catch(r => {
         dispatch({
@@ -158,7 +158,27 @@ export const updateTextFile = (fileName, content) => (dispatch, getState) => {
  * Request API to get file list for the selected path then refresh UI
  * @returns {Function}
  */
-export const refreshFileList = () => (dispatch, getState) => {
+export const loadCachedItemList = () => (dispatch, getState) => {
+    const { path } = getState();
+    dispatch(setLoading(true));
+    dispatch(setSelectedItems([]));
+    APIHandler.getCachedItemList(path.join('/')).then(items => {
+        dispatch(setLoading(false));
+        dispatch(setItemList(items));
+    }).catch(r => {
+        dispatch(setItemList([]));
+        dispatch({
+            type: 'SET_ERROR_MSG',
+            value: r.toString()
+        });
+        dispatch(setLoading(false));
+    });
+};
+
+/**
+ * Request API to reload the file list and then refresh UI
+ */
+export const refreshItemList = () => (dispatch, getState) => {
     const { path } = getState();
     dispatch(setLoading(true));
     dispatch(setSelectedItems([]));
@@ -173,19 +193,19 @@ export const refreshFileList = () => (dispatch, getState) => {
         });
         dispatch(setLoading(false));
     });
-};
+}
 
 
 /**
  * Request API to get file list for the selected path then refresh UI
  * @returns {Function}
  */
-export const refreshFileListSublist = () => (dispatch, getState) => {
+export const updateItemListSublist = () => (dispatch, getState) => {
     const { pathSublist } = getState();
     dispatch(setLoadingSublist(true));
     dispatch(setSelectedFolderSublist(null));
 
-    APIHandler.getItemList(pathSublist.join('/')).then(r => {
+    APIHandler.getCachedItemList(pathSublist.join('/')).then(r => {
         dispatch(setLoadingSublist(false));
         dispatch(setItemListSublist(r));
     }).catch(r => {
@@ -210,7 +230,7 @@ export const renameFile = (fileName, newFileName) => (dispatch, getState) => {
     APIHandler.renameFile(path.join('/'), fileName, newFileName).then(blob => {
         dispatch(setVisibleDialogRename(false));
         dispatch(setLoading(false));
-        dispatch(refreshFileList());
+        dispatch(refreshItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -232,7 +252,7 @@ export const renameFolder = (folderName, newFolderName) => (dispatch, getState) 
     APIHandler.renameFolder(path.join('/'), folderName, newFolderName).then(blob => {
         dispatch(setVisibleDialogRename(false));
         dispatch(setLoading(false));
-        dispatch(refreshFileList());
+        dispatch(refreshItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -293,7 +313,7 @@ export const zipAndUpload = (itemList) => (dispatch, getState) => {
         .then(blob => APIHandler.updateFile(path.join('/'), archiveName, blob))
         .then(() => {
             dispatch(setLoading(false));
-            dispatch(refreshFileList());
+            dispatch(refreshItemList());
         })
         .catch(r => {
             dispatch({
@@ -315,7 +335,7 @@ export const extractZipFile = (fileName) => (dispatch, getState) => {
     dispatch(setLoading(true));
     APIHandler.extractZipArchive(path.join('/'), path.join('/'), fileName).then(r => {
         dispatch(setLoading(false));
-        dispatch(refreshFileList());
+        dispatch(refreshItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -417,7 +437,7 @@ export const createNewFolder = (createFolderName) => (dispatch, getState) => {
     APIHandler.createFolder(path.join('/'), createFolderName).then(r => {
         dispatch(setVisibleDialogCreateFolder(false));
         dispatch(setLoading(false));
-        dispatch(refreshFileList());
+        dispatch(refreshItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -440,7 +460,7 @@ export const removeItems = (items) => (dispatch, getState) => {
     dispatch(setLoading(true));
     APIHandler.removeItems(path.join('/'), itemNames).then(r => {
         dispatch(setLoading(false));
-        dispatch(refreshFileList());
+        dispatch(refreshItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -465,7 +485,7 @@ export const moveItems = (items) => (dispatch, getState) => {
     APIHandler.moveItems(path.join('/'), destination, itemNames).then(r => {
         dispatch(setLoading(false));
         dispatch(setVisibleDialogMove(false));
-        dispatch(refreshFileList());
+        dispatch(refreshItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -491,7 +511,7 @@ export const copyItems = (items) => (dispatch, getState) => {
         alert('response');
         dispatch(setLoading(false));
         dispatch(setVisibleDialogCopy(false));
-        dispatch(refreshFileList());
+        dispatch(refreshItemList());
     }).catch(r => {
         dispatch({
             type: 'SET_ERROR_MSG',
@@ -536,7 +556,7 @@ export const initSubList = () => (dispatch, getState) => {
     dispatch(setSelectedFolderSublist(null));
     dispatch(setItemListSublist([]));
     dispatch(setPathSublist([...path]));
-    dispatch(refreshFileListSublist());
+    dispatch(updateItemListSublist());
 };
 
 export const resetFileUploader = () => (dispatch, getState) => {
@@ -561,7 +581,7 @@ export const enterFolderByItem = (item) => (dispatch, getState) => {
 export const enterFolderWithoutUpdatingHistory = (path) => (dispatch, getState) => {
     dispatch(setPath(path));
     dispatch(setFileListFilter(null));
-    dispatch(refreshFileList());
+    dispatch(loadCachedItemList());
 };
 
 export const enterToPreviousDirectory = () => (dispatch, getState) => {
@@ -577,7 +597,7 @@ export const enterToPreviousDirectoryByIndex = (index) => (dispatch, getState) =
 export const enterToPreviousDirectorySublist = () => (dispatch, getState) => {
     const { pathSublist } = getState();
     dispatch(setPathSublist(pathSublist.slice(0, -1)));
-    dispatch(refreshFileListSublist());
+    dispatch(updateItemListSublist());
 };
 
 export const setPath = (path) => {
@@ -620,7 +640,7 @@ export const enterToDirectorySublist = (directory) => (dispatch, getState) => {
         type: 'ENTER_TO_DIRECTORY_SUB_LIST',
         value: directory
     });
-    dispatch(refreshFileListSublist());
+    dispatch(updateItemListSublist());
 };
 
 export const setItemList = (itemList) => {

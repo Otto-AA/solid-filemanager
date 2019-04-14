@@ -1,7 +1,9 @@
 import * as API from './Api.js';
 import * as JSZip from 'jszip';
 import { FileItem, FolderItem } from './Item.js';
+import ApiCache from './ApiCache';
 
+const cache = new ApiCache();
 
 /**
  * Log a fetch response error and throw it again
@@ -67,7 +69,20 @@ export const getItemList = (path) => {
     path = fixPath(path);
     return API.readFolder(path)
         .then(({ files, folders }) => [...files, ...folders])
+        .then(itemList => cache.add(path, itemList))
         .catch(handleFetchError);
+};
+
+/**
+ * 
+ * @param {String} path 
+ * @returns {Promise<API.FolderItems>}
+ */
+export const getCachedItemList = (path) => {
+    path = fixPath(path);
+    if (cache.contains(path))
+        return Promise.resolve(cache.get(path));
+    return getItemList(path);
 };
 
 /**
@@ -292,8 +307,7 @@ function getItemsInZipFolder(zip, folderPath) {
             // No items from subfolders
             if (relativePath.includes('/') && relativePath.slice(0, -1).includes('/'))
                 return false;
-            
-            console.log(`found in folder: ${fileName}`);
+
             return true;
         })
         .map(key => zip.files[key]);

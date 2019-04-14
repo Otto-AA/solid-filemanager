@@ -4,11 +4,13 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import InputBase from '@material-ui/core/InputBase';
+import IconButton from '@material-ui/core/IconButton';
 import { fade } from '@material-ui/core/styles/colorManipulator';
 import { withStyles } from '@material-ui/core/styles';
 import SearchIcon from '@material-ui/icons/Search';
+import RefreshIcon from '@material-ui/icons/Refresh';
 import { connect } from 'react-redux';
-import { setFileListFilter, enterToPreviousDirectoryByIndex } from '../../Actions/Actions.js';
+import { setFileListFilter, enterToPreviousDirectoryByIndex, refreshItemList } from '../../Actions/Actions.js';
 import ThreeDotsMenu from './ThreeDotsMenu.jsx';
 import BreadcrumbText from '../Breadcrumb/BreadcrumbText.jsx';
 import { enterToPreviousDirectory } from '../../Actions/Actions.js';
@@ -107,6 +109,9 @@ function SearchAppBar(props) {
               }}
             />
           </div>
+          <IconButton color="inherit" aria-label="Refresh" onClick={props.handleRefresh}>
+            <RefreshIcon/>
+          </IconButton>
           <ThreeDotsMenu />
         </Toolbar>
       </AppBar>
@@ -144,7 +149,8 @@ const mapDispatchToProps = (dispatch) => {
         handleClickPath: (event, index) => {
             dispatch(enterToPreviousDirectoryByIndex(index));
             event.preventDefault();
-        }
+        },
+        handleRefresh: () => dispatch(refreshItemList())
     };
 };
 
