@@ -17,8 +17,7 @@ export const defaultState = {
     loading: false,
     loadingSublist: false,
     errorMsg: null,
-    visibleDialogSolidLogin: false,
-    visibleDialogSolidLogout: false,
+    visibleDialogChooseLocation: false,
     visibleDialogCreateFolder: false,
     visibleDialogCreateFile: false,
     visibleDialogUploadFile: false,
@@ -122,14 +121,9 @@ const MainReducer = (state = defaultState, action) => {
                 errorMsg: action.value
             });
 
-        case 'SET_VISIBLE_DIALOG_SOLID_LOGIN':
+        case 'SET_VISIBLE_DIALOG_CHOOSE_LOCATION':
             return Object.assign({}, state, {
-                visibleDialogSolidLogin: !!action.value
-            });
-
-        case 'SET_VISIBLE_DIALOG_SOLID_LOGOUT':
-            return Object.assign({}, state, {
-                visibleDialogSolidLogout: !!action.value
+                visibleDialogChooseLocation: !!action.value
             });
 
         case 'SET_VISIBLE_DIALOG_CREATE_FOLDER':

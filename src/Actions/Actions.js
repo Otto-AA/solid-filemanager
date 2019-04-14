@@ -4,6 +4,12 @@ import { createBrowserHistory } from 'history';
 // eslint-disable-next-line no-unused-vars
 import { Item, FileItem, FolderItem } from '../Api/Item.js';
 
+export const initApp = () => (dispatch, getState) => {
+    dispatch(initBrowserHistory());
+    dispatch(updateLoginStatus());
+    dispatch(setVisibleDialogChooseLocation(true));
+};
+
 // Note: This doesn't seem like a good way to handle this, but it's the best I've come up with for now.
 // Feel free to change in the future
 let history;
@@ -47,7 +53,7 @@ export const getLocationObjectFromUrl = (url) => {
 export const solidLogin = () => (dispatch, getState) => {
     dispatch(setLoading(true));
 
-    solidPopupLogin().then(webId => {
+    solidPopupLogin().then(({ webId }) => {
         dispatch(setWebId(webId));
         dispatch(setIsLoggedIn(true));
         dispatch(setLoading(false));
@@ -60,13 +66,20 @@ export const solidLogin = () => (dispatch, getState) => {
     });
 };
 
-async function solidPopupLogin() {
-    let session = await solidAuth.currentSession();
+export const updateLoginStatus = () => async (dispatch, getState) => {
+    const session = await solidAuth.currentSession();
     if (!session) {
-        let popupUri = 'https://solid.community/common/popup.html';
-        session = await solidAuth.popupLogin({ popupUri });
+        dispatch(setIsLoggedIn(false));
+        dispatch(setWebId(null));
     }
-    return (session.webId);
+    else {
+        dispatch(setIsLoggedIn(true));
+        dispatch(setWebId(session.webId));
+    }
+}
+
+async function solidPopupLogin() {
+    return solidAuth.popupLogin({ popupUri: 'https://solid.community/common/popup.html' });
 }
 
 
@@ -78,11 +91,9 @@ export const solidLogout = () => (dispatch, getState) => {
         dispatch(setPathSublist([]));
         dispatch(setItemList([]));
         dispatch(setSelectedItems([]));
-        APIHandler.clearCache();
         dispatch(setIsLoggedIn(false));
-        dispatch(setWebId(''));
-        dispatch(setVisibleDialogSolidLogout(false));
-        dispatch(setVisibleDialogSolidLogin(true));
+        dispatch(setWebId(null));
+        dispatch(setVisibleDialogChooseLocation(true));
         dispatch(setLoading(false));
     }).catch(r => {
         dispatch({
@@ -92,6 +103,8 @@ export const solidLogout = () => (dispatch, getState) => {
         dispatch(setLoading(false));
     });
 };
+
+export const clearCache = () => (disptach, getState) => APIHandler.clearCache();
 
 
 /**
@@ -181,8 +194,8 @@ export const displayCurrentItemList = () => (dispatch, getState) => {
  */
 export const refreshItemList = () => (dispatch, getState) => {
     const { path } = getState();
-    APIHandler.clearCacheForFolder(path);
-    return displayCurrentItemList();
+    APIHandler.clearCacheForFolder(path.join('/'));
+    return dispatch(displayCurrentItemList());
 };
 
 
@@ -716,16 +729,9 @@ export const setLoadingSublist = (value) => {
     };
 };
 
-export const setVisibleDialogSolidLogin = (visible) => {
+export const setVisibleDialogChooseLocation = (visible) => {
     return {
-        type: 'SET_VISIBLE_DIALOG_SOLID_LOGIN',
-        value: !!visible
-    };
-};
-
-export const setVisibleDialogSolidLogout = (visible) => {
-    return {
-        type: 'SET_VISIBLE_DIALOG_SOLID_LOGOUT',
+        type: 'SET_VISIBLE_DIALOG_CHOOSE_LOCATION',
         value: !!visible
     };
 };

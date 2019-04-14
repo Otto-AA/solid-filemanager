@@ -31,7 +31,8 @@
     "react-scripts": "^2.1.8",
     "redux": "~4.0.1",
     "redux-thunk": "~2.3.0",
-    "solid-auth-client": "^2.3.0"
+    "solid-auth-client": "^2.3.0",
+    "typeface-roboto": "0.0.54"
   },
   "scripts": {
     "predeploy": "npm run build",

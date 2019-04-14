@@ -5,8 +5,9 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
 import { connect } from 'react-redux';
-import { solidLogin, setVisibleDialogSolidLogin, setHost, enterFolder, getLocationObjectFromUrl } from '../../../Actions/Actions.js';
+import { solidLogin, setVisibleDialogChooseLocation, setHost, enterFolder, getLocationObjectFromUrl, solidLogout, clearCache } from '../../../Actions/Actions.js';
 
 class FormDialog extends Component {
     state = {
@@ -39,31 +40,40 @@ class FormDialog extends Component {
 
     render() {
         let { location } = this.state;
-        const { handleClose, handleLogin, open, isLoggedIn } = this.props;
+        location = location ? location : '';
+        const { handleClose, handleLogin, handleLogout, open, isLoggedIn, webId } = this.props;
 
         return (
-            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-solid-login" fullWidth={true} maxWidth={'sm'}>
+            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-choose-location" fullWidth={true} maxWidth={'sm'}>
                 <form>
-                  <DialogTitle id="form-dialog-solid-login">Login to your Solid pod</DialogTitle>
+                  <DialogTitle id="form-dialog-choose-location">Choose the storage location</DialogTitle>
                   <DialogContent>
-                    <p>Please login to your solid pod to access this app by clicking the login button below.</p>
-                    <Button color="primary" type="submit" onClick={handleLogin}>
-                      Login
-                    </Button>
-                    {
-                      isLoggedIn && (
-                        <div>
-                          <p>Please enter the full url to the directory you want to open</p>
-                          <TextField autoFocus fullWidth margin="dense" label="Directory Location" type="text" onChange={this.handleChange.bind(this)} value={location} />
-                        </div>
-                      )
+                    <Typography variant="body1" gutterBottom>
+                      { !isLoggedIn ? 
+                          "If you want to access private resources, please login with the button below."
+                          : "Logged in as " + webId + "."
+                      }
+                    </Typography>
+                    { !isLoggedIn ? 
+                        <Button variant="outlined" color="primary" onClick={handleLogin}>Login</Button>
+                        : <Button variant="outlined" onClick={handleLogout}>Logout</Button>
                     }
+
+                    <Typography variant="body1">
+                      Please enter the directory you want to open below.
+                    </Typography>
+                    <TextField autoFocus fullWidth 
+                      margin="normal" 
+                      label="Storage Location" 
+                      variant="outlined"
+                      onChange={this.handleChange.bind(this)}
+                      value={location} />
                   </DialogContent>
                   <DialogActions>
                     <Button onClick={handleClose} color="primary" type="button">
                       Cancel
                     </Button>
-                    <Button color="primary" type="submit" onClick={this.handleSubmit.bind(this)} disabled={!isLoggedIn}>
+                    <Button color="primary" type="submit" onClick={this.handleSubmit.bind(this)}>
                       Open directory
                     </Button>
                   </DialogActions>
@@ -75,7 +85,7 @@ class FormDialog extends Component {
 
 const mapStateToProps = (state) => {
     return {
-        open: state.visibleDialogSolidLogin,
+        open: state.visibleDialogChooseLocation,
         webId: state.webId,
         isLoggedIn: state.isLoggedIn
     };
@@ -84,17 +94,22 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch, ownProps) => {
     return {
         handleClose: event => {
-            dispatch(setVisibleDialogSolidLogin(false));
+            dispatch(setVisibleDialogChooseLocation(false));
         },
         handleLogin: event => {
             event.preventDefault();
             dispatch(solidLogin());
         },
+        handleLogout: event => {
+            event.preventDefault();
+            dispatch(solidLogout());
+        },
         handleSubmit: event => (location) => {
             event.preventDefault();
             const { host, path } = getLocationObjectFromUrl(location);
-            dispatch(setVisibleDialogSolidLogin(false));
+            dispatch(setVisibleDialogChooseLocation(false));
             dispatch(setHost(host));
+            dispatch(clearCache());
             dispatch(enterFolder(path));
         }
     };

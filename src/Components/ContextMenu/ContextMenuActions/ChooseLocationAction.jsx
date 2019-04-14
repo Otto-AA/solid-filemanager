@@ -3,10 +3,10 @@ import MenuItem from '@material-ui/core/MenuItem';
 import { connect } from 'react-redux';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Typography from '@material-ui/core/Typography';
-import PermIdentityIcon from '@material-ui/icons/PermIdentity';
-import { setVisibleDialogSolidLogin } from '../../../Actions/Actions.js';
+import FolderSharedIcon from '@material-ui/icons/FolderSharedOutlined';
+import { setVisibleDialogChooseLocation } from '../../../Actions/Actions.js';
 
-function SolidLoginAction(props) {
+function ChooseLocationAction(props) {
     const {handleClick, handleClose} = props;
 
     const handleCloseAfter = (callback) => (event) => {
@@ -17,10 +17,10 @@ function SolidLoginAction(props) {
     return (
         <MenuItem onClick={handleCloseAfter(handleClick)}>
             <ListItemIcon>
-                <PermIdentityIcon />
+                <FolderSharedIcon />
             </ListItemIcon>
             <Typography variant="inherit">
-                Login
+                Choose root location
             </Typography>
         </MenuItem>        
     );
@@ -34,9 +34,9 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch, ownProps) => {
     return {
         handleClick: (event) => {
-            dispatch(setVisibleDialogSolidLogin(true));
+            dispatch(setVisibleDialogChooseLocation(true));
         }
     };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(SolidLoginAction);
+export default connect(mapStateToProps, mapDispatchToProps)(ChooseLocationAction);

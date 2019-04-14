@@ -7,6 +7,7 @@ import MainReducer from './Reducers/MainReducer'
 import * as serviceWorker from './serviceWorker';
 import App from './App';
 import './index.css';
+import 'typeface-roboto';
 
 const store = createStore(MainReducer, applyMiddleware(thunk));
 ReactDOM.render(

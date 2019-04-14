@@ -7,7 +7,7 @@ import Dialogs from './Components/Dialogs/Dialogs.jsx';
 import { MuiThemeProvider as MaterialUI, createMuiTheme } from '@material-ui/core/styles';
 import blue from '@material-ui/core/colors/blue';
 import { connect } from 'react-redux';
-import { setContextMenuVisible, setVisibleDialogSolidLogin, initBrowserHistory } from './Actions/Actions.js';
+import { setContextMenuVisible, initApp } from './Actions/Actions.js';
 import DynamicSnackbar from './Components/Notification/DynamicSnackbar.jsx'; 
 
 const theme = createMuiTheme({
@@ -41,19 +41,17 @@ class App extends Component {
 }
 
 const mapStateToProps = (state) => {
-    return {
-    };
+    return {};
 };
 
 const mapDispatchToProps = (dispatch) => {
     return {
         init: () => {
-			dispatch(initBrowserHistory());
-            dispatch(setVisibleDialogSolidLogin(true));
+            dispatch(initApp());
         },
 
         handleHideContextMenu: (event) => {
-            if (! (event.target.tagName === 'INPUT' || /label/i.test(event.target.className))) {
+            if (!(event.target.tagName === 'INPUT' || /label/i.test(event.target.className))) {
                 event.preventDefault();
             }
             dispatch(setContextMenuVisible(false));

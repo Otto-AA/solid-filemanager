@@ -6,8 +6,7 @@ import { connect } from 'react-redux';
 import CreateFolderAction from '../ContextMenu/ContextMenuActions/CreateFolderAction.jsx';
 import CreateFileAction from '../ContextMenu/ContextMenuActions/CreateFileAction.jsx';
 import UploadFileAction from '../ContextMenu/ContextMenuActions/UploadFileAction.jsx';
-import SolidLoginAction from '../ContextMenu/ContextMenuActions/SolidLoginAction';
-import SolidLogoutAction from '../ContextMenu/ContextMenuActions/SolidLogoutAction.jsx';
+import ChooseLocationAction from '../ContextMenu/ContextMenuActions/ChooseLocationAction.jsx';
 
 class ThreeDotsMenu extends React.Component {
   state = {
@@ -24,7 +23,6 @@ class ThreeDotsMenu extends React.Component {
 
   render() {
     const { anchorEl } = this.state;
-    const { isLoggedIn } = this.props;
 
     return (
       <div style={{marginLeft:'1em'}}>
@@ -40,10 +38,7 @@ class ThreeDotsMenu extends React.Component {
           <CreateFolderAction handleClose={this.handleClose} />
           <CreateFileAction handleClose={this.handleClose} />
           <UploadFileAction handleClose={this.handleClose} />
-          { isLoggedIn ?
-            <SolidLogoutAction handleClose={this.handleClose} />
-            : <SolidLoginAction handleClose={this.handleClose} />
-          }
+          <ChooseLocationAction handleClose={this.handleClose} />
         </Menu>
       </div>
     );
@@ -52,14 +47,11 @@ class ThreeDotsMenu extends React.Component {
 
 
 const mapStateToProps = (state) => {
-    return {
-      isLoggedIn: state.isLoggedIn
-    };
+    return {};
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {
-    return {
-    };
+    return {};
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ThreeDotsMenu);
