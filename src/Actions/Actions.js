@@ -79,7 +79,7 @@ export const updateLoginStatus = () => async (dispatch, getState) => {
 }
 
 async function solidPopupLogin() {
-    return solidAuth.popupLogin({ popupUri: 'https://solid.community/common/popup.html' });
+    return solidAuth.popupLogin({ popupUri: './vendor/solid-auth-client/popup.html' });
 }
 
 
