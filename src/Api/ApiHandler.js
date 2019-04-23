@@ -220,7 +220,7 @@ export const uploadFiles = (path, fileList) => {
 export const updateFile = (path, fileName, content) => {
     path = fixPath(path);
     cache.remove(path);
-    return API.updateItem(path, fileName, content)
+    return API.updateFile(path, fileName, content)
         .catch(handleFetchError);
 };
 

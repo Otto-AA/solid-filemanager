@@ -124,17 +124,10 @@ export async function copyItems(path, destination, itemNames) {
  * @returns {Response}
  */
 export async function copyFile(originPath, originName, destinationPath, destinationName) {
-    const destinationUrl = buildFileUrl(destinationPath, destinationName);
-
     const fileResponse = await fetchFile(originPath, originName);
-    const content = (fileResponse.headers.get('Content-Type') === 'application/json') ?
-        await fileResponse.text()
-        : await fileResponse.blob();
+    const content = await fileResponse.blob();
 
-    return solidAuth.fetch(destinationUrl, {
-        method: 'PUT',
-        body: content
-    }).then(assertSuccessfulResponse);
+    return createFile(destinationPath, destinationName, content);
 }
 
 
@@ -168,7 +161,7 @@ export async function copyFolder(originPath, originName, destinationPath, destin
  * @returns {Response}
  */
 export async function upload(path, fileList) {
-    const promises = Array.from(fileList).map(file => updateItem(path, file.name, file));
+    const promises = Array.from(fileList).map(file => updateFile(path, file.name, file));
     await Promise.all(promises);
     return new Response();
 };
@@ -184,21 +177,32 @@ export async function createFolder(path, folderName) {
     if (await folderExists(path, folderName))
         return new Response();
 
-    return createItem(path, folderName, '', 'dir');
+    return createItem(path, folderName, '', '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"');
 }
 
 
 /**
- * Fetch API to create update or create an item
+ * Fetch API to replace or create a new file
  * @param {String} path
- * @param {String} itemName
+ * @param {String} fileName
  * @param {String} content
- * @param {String} contentType
  * @returns {Response}
  */
-export async function updateItem(path, itemName, content, contentType) {
-    await removeItem(path, itemName);
-    return createItem(path, itemName, content, contentType);
+export async function updateFile(path, fileName, content) {
+    await removeItem(path, fileName);
+    return createFile(path, fileName, content);
+}
+
+
+/**
+ * Fetch API to create a new file
+ * @param {String} path
+ * @param {String} fileName
+ * @param {String} content
+ * @returns {Response}
+ */
+export async function createFile(path, fileName, content) {
+    return createItem(path, fileName, content, '<http://www.w3.org/ns/ldp#Resource>; rel="type"');
 }
 
 
@@ -207,21 +211,17 @@ export async function updateItem(path, itemName, content, contentType) {
  * @param {String} path
  * @param {String} itemName
  * @param {String} content
- * @param {String} contentType
+ * @param {String} link
  * @returns {Response}
  */
-async function createItem(path, itemName, content, contentType) {
+async function createItem(path, itemName, content, link) {
     const baseUrl = `${config.getHost()}${path}`;
-    const link = (contentType === 'dir') ?
-        '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"'
-        : '<http://www.w3.org/ns/ldp#Resource>; rel="type"';
-
     const request = {
         method: 'POST',
         headers: {
             link,
             slug: itemName,
-            'Content-Type': contentType
+            'Content-Type': undefined
         },
         body: content
     };

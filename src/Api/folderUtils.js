@@ -37,15 +37,8 @@ export function isFolder(graph, url) {
     const folderNode = rdflib.sym(url);
     const isAnInstanceOfClass = rdflib.sym('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
     const types = graph.each(folderNode, isAnInstanceOfClass, undefined);
-    for (const index in types) {
-        const contentType = types[index].value;
-        if (contentType.match('ldp#BasicContainer'))
-            return true;
-        else
-            return false;
-    }
-    console.error('unknown item type', graph, url);
-    return false;
+    return Object.values(types)
+        .some(({ value }) => value.match('ldp#BasicContainer'));
 }
 
 export function getFolderItems(graph, subj) {
