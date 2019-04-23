@@ -5,7 +5,7 @@ import { loadAndDisplayFile, displaySelectedMediaFile, loadAndEditFile, enterFol
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Typography from '@material-ui/core/Typography';
 import OpenInBrowserIcon from '@material-ui/icons/OpenInBrowser';
-import { FileItem, FolderItem } from '../../../Api/Item.js';
+import { FileItem, FolderItem } from '../../../Api/Item';
 
 function OpenAction(props) {
     const {handleClick, selectedItems} = props;

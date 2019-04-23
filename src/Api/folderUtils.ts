@@ -1,52 +1,37 @@
 // Based on https://github.com/jeff-zucker/solid-file-client/blob/master/src/folderUtils.js
 import * as rdflib from 'rdflib';
-import { FileItem, FolderItem } from './Item.js';
+import { FileItem, FolderItem } from './Item';
+import { FolderItems } from './types';
 
-/*
-export function getStats(graph, subjectName) {
-    const subjectNode = rdflib.sym(subjectName);
-    const mod = rdflib.sym('http://purl.org/dc/terms/modified');
-    const size = rdflib.sym('http://www.w3.org/ns/posix/stat#size');
-    // const mtime = rdflib.sym('http://www.w3.org/ns/posix/stat#mtime');
-    let modified = graph.any(subjectNode, mod, undefined);
-    if (typeof (modified) === "undefined") return false;
-    else modified = modified.value;
-    return {
-        modified: modified,
-        size: graph.any(subjectNode, size, undefined).value,
-        // mtime: graph.any(subjectNode, mtime, undefined).value,
-    };
-}
-*/
-
-export function getSizeByGraph(graph, subjectName) {
+export function getSizeByGraph(graph: rdflib.IndexedFormula, subjectName: string): string | undefined {
     const subjectNode = rdflib.sym(subjectName);
     const nsSize = rdflib.sym('http://www.w3.org/ns/posix/stat#size');
-    const size = graph.any(subjectNode, nsSize, undefined);
+    const size = graph.any(subjectNode, nsSize, undefined, undefined);
 
     return (size && 'value' in size) ? size.value : undefined;
 }
 
-/** A type used internally to indicate we are handling a folder */
 /**
  * @param {rdflib.IndexedFormula} graph a rdflib.graph() database instance
- * @param {string} url location of the folder
- * @returns {string} content mime-type of a file, If it's a folder, return 'folder', 'unknown' for not sure
+ * @param {string} baseUrl location of the folder
+ * @returns {Boolean}
  */
-export function isFolder(graph, url) {
-    const folderNode = rdflib.sym(url);
+export function isFolder(graph: rdflib.IndexedFormula, baseUrl: string): Boolean {
+    const folderNode = rdflib.sym(baseUrl);
     const isAnInstanceOfClass = rdflib.sym('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
-    const types = graph.each(folderNode, isAnInstanceOfClass, undefined);
+    const types = graph.each(folderNode, isAnInstanceOfClass, undefined, undefined);
     return Object.values(types)
-        .some(({ value }) => value.match('ldp#BasicContainer'));
+        .some(({ value }) => value.match('ldp#BasicContainer') !== null);
 }
 
-export function getFolderItems(graph, subj) {
-    const files = [];
-    const folders = [];
+export function getFolderItems(graph: rdflib.IndexedFormula, subj: string): FolderItems {
+    const files: FileItem[] = [];
+    const folders: FolderItem[] = [];
+
     graph.each(
         rdflib.sym(subj),
         rdflib.sym('http://www.w3.org/ns/ldp#contains'),
+        undefined,
         undefined
     ).forEach(item => {
         const url = item.value;
@@ -63,24 +48,21 @@ export function getFolderItems(graph, subj) {
 
 /**
  * @param {string} text RDF text that can be passed to $rdf.parse()
- * @param {*} content the request body
+ * @param {string} baseUrl the base url of the item
  * @param {string} contentType Content-Type of the request
- * @returns {$rdf.IndexedFormula} a $rdf.graph() database instance with parsed RDF
+ * @returns {Promise<rdflib.IndexedFormula>} a rdfilb.graph() database instance with parsed RDF
  */
-export async function text2graph(text, url, contentType) {
+export async function text2graph(text: string, baseUrl: string, contentType: string = ''): Promise<rdflib.IndexedFormula> {
+    contentType = contentType || guessFileType(baseUrl);
+    const graph = rdflib.graph();
+
     return new Promise((resolve, reject) => {
-        contentType = contentType || guessFileType(url)
-        var graph = rdflib.graph();
-        try {
-            rdflib.parse(text, graph, url, contentType);
-            resolve(graph);
-        } catch (err) {
-            reject(err)
-        }
-    })
+        rdflib.parse(text, graph, baseUrl, contentType, () => {});
+        resolve(graph);
+    });
 }
 
-/*cjs*/ function guessFileType(url) {
+function guessFileType(url: string): string {
     const ext = url.replace(/.*\./, '');
     if (ext.match(/\/$/)) return 'dir';
     if (ext.match(/(md|markdown)/)) return 'text/markdown';

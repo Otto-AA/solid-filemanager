@@ -1,8 +1,8 @@
-import * as APIHandler from '../Api/ApiHandler.js';
+import * as APIHandler from '../Api/ApiHandler';
 import * as solidAuth from 'solid-auth-client';
 import { createBrowserHistory } from 'history';
 // eslint-disable-next-line no-unused-vars
-import { Item, FileItem, FolderItem } from '../Api/Item.js';
+import { Item, FileItem, FolderItem } from '../Api/Item';
 
 export const initApp = () => (dispatch, getState) => {
     dispatch(initBrowserHistory());

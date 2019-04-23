@@ -2,47 +2,41 @@
 import { Item } from './Item';
 
 export default class ApiCache {
-    constructor() {
-        this._data = {};
-    }
+    _data: { [path: string]: Item[] } = {};
 
     /**
      * Add data to the cache
-     * @param {Array<String>} path 
-     * @param {Array<Item>} itemList 
-     * @returns {Array<Item>}
      */
-    add(path, itemList) {
+    add(path: string, itemList: Item[]): Item[] {
         this._data[path] = itemList;
         return itemList;
     }
 
     /**
      * Return true if the url is already cached
-     * @param {Array<String>} path 
-     * @returns {Boolean}
      */
-    contains(path) {
+    contains(path: string): Boolean {
         return this._data.hasOwnProperty(path);
     }
 
     /**
      * Get the cached data
-     * @param {Array<String>} path 
-     * @returns {Array<Item>}
      */
-    get(path) {
+    get(path: string): Item[] {
         return this._data[path];
     }
 
     /**
-     * @param {Array<String>} path
+     * Remove paths from the cache
      */
-    remove(...paths) {
+    remove(...paths: string[]) {
         paths.filter(path => this.contains(path))
             .forEach(path => delete this._data[path]);
     }
 
+    /**
+     * Clear the whole cache
+     */
     clear() {
         this._data = {};
     }

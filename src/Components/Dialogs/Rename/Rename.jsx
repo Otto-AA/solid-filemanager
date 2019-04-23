@@ -7,7 +7,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import { connect } from 'react-redux';
 import { renameFile, renameFolder, setVisibleDialogRename } from '../../../Actions/Actions.js';
-import { FolderItem } from '../../../Api/Item.js';
+import { FolderItem } from '../../../Api/Item';
 
 class FormDialog extends Component {
 

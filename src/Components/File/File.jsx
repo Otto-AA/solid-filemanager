@@ -14,7 +14,7 @@ import Avatar from '@material-ui/core/Avatar';
 import FolderIcon from '@material-ui/icons/Folder';
 import FileIcon from '@material-ui/icons/InsertDriveFile';
 import blue from '@material-ui/core/colors/blue';
-import { FileItem } from '../../Api/Item.js';
+import { FileItem } from '../../Api/Item';
 
 class File extends Component {
     render() {

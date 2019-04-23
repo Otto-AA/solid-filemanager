@@ -13,7 +13,7 @@ import FolderIcon from '@material-ui/icons/Folder';
 import FileIcon from '@material-ui/icons/InsertDriveFile';
 import blue from '@material-ui/core/colors/blue';
 import '../File.css';
-import { FileItem } from '../../../Api/Item.js';
+import { FileItem } from '../../../Api/Item';
 
 const styles = theme => ({
 });

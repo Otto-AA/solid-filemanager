@@ -1,6 +1,6 @@
-import * as API from './Api.js';
-import * as JSZip from 'jszip';
-import { FileItem, FolderItem } from './Item.js';
+import * as API from './Api';
+import JSZip from 'jszip';
+import { FileItem, FolderItem, Item } from './Item';
 import ApiCache from './ApiCache';
 
 const cache = new ApiCache();
@@ -9,9 +9,9 @@ const cache = new ApiCache();
  * Log a fetch response error and throw it again
  * @param {*} error 
  */
-const handleFetchError = async (error) => {
+const handleFetchError = async (error: Error | Response | string) => {
     let detailedErrorMessage = '';
-    let displayErrorMessage;
+    let displayErrorMessage: string | undefined;
 
     console.group('handleFetchError');
     if (error instanceof Response) {
@@ -20,7 +20,7 @@ const handleFetchError = async (error) => {
         console.error(`url: ${error.url}`);
         console.error(`status: ${error.status}`);
 
-        const displayMessages = {
+        const displayMessages: { [key: string]: string } = {
             '401': `The ressource at ${error.url} requires you to login.`,
             '403': `You don't have permission to access the ressource at ${error.url}.
             Please make sure that you are logged in with the correct account.
@@ -51,10 +51,8 @@ const handleFetchError = async (error) => {
 
 /**
  * Clean path string removing double slashes and prepending a slash if non-empty
- * @param {String} path
- * @returns {String}
  */
-const fixPath = (path) => {
+const fixPath = (path: string): string => {
     if (path === "")
         return path;
     return ('/' + path).replace(/\/\//g, '/');
@@ -66,29 +64,23 @@ const fixPath = (path) => {
  * @param {String} path
  * @returns {Promise<API.FolderItems>}
  */
-export const getItemList = (path) => {
+export const getItemList = (path: string): Promise<Item[]> => {
     path = fixPath(path);
     if (cache.contains(path))
-	return Promise.resolve(cache.get(path));
+        return Promise.resolve(cache.get(path));
     return API.readFolder(path)
         .then(({ files, folders }) => [...files, ...folders])
         .then(itemList => cache.add(path, itemList))
         .catch(handleFetchError);
 };
 
-/**
- * @param {String} path 
- */
-export const clearCacheForFolder = (path) => cache.remove(fixPath(path));
+export const clearCacheForFolder = (path: string) => cache.remove(fixPath(path));
 export const clearCache = () => cache.clear();
 
 /**
  * Wrap API response for retrieving file content
- * @param {String} path
- * @param {String} filename
- * @returns {Promise<Blob>}
  */
-export const getFileBlob = (path, filename) => {
+export const getFileBlob = (path: string, filename: string): Promise<Blob> => {
     path = fixPath(path);
     return API.fetchFile(path, filename)
         .then(response => response.blob())
@@ -98,12 +90,8 @@ export const getFileBlob = (path, filename) => {
 
 /**
  * Wrap API response for renaming a file
- * @param {String} path
- * @param {String} fileName
- * @param {String} newFileName
- * @returns {Promise<Response>}
  */
-export const renameFile = (path, fileName, newFileName) => {
+export const renameFile = (path: string, fileName: string, newFileName: string): Promise<Response> => {
     path = fixPath(path);
     cache.remove(path);
     return API.renameFile(path, fileName, newFileName)
@@ -113,12 +101,8 @@ export const renameFile = (path, fileName, newFileName) => {
 
 /**
  * Wrap API response for renaming a folder
- * @param {String} path
- * @param {String} folderName
- * @param {String} newFolderName
- * @returns {Promise<Response>}
  */
-export const renameFolder = (path, folderName, newFolderName) => {
+export const renameFolder = (path: string, folderName: string, newFolderName: string): Promise<Response> => {
     path = fixPath(path);
     cache.remove(path);
     return API.renameFolder(path, folderName, newFolderName)
@@ -127,27 +111,21 @@ export const renameFolder = (path, folderName, newFolderName) => {
 
 /**
  * Wrap API response for creating a folder
- * @param {String} path
- * @param {String} folder
- * @returns {Promise<Response>}
  */
-export const createFolder = (path, folder) => {
+export const createFolder = (path: string, folderName: string): Promise<Response> => {
     path = fixPath(path);
     cache.remove(path);
-    if (!(folder || '').trim()) {
+    if (!(folderName || '').trim()) {
         return Promise.reject('Invalid folder name');
     }
-    return API.createFolder(path, folder)
+    return API.createFolder(path, folderName)
         .catch(handleFetchError)
 };
 
 /**
  * Wrap API response for removing a file or folder
- * @param {String} path
- * @param {Array<String>} filenames
- * @returns {Promise<Response>}
  */
-export const removeItems = (path, filenames) => {
+export const removeItems = (path: string, filenames: string[]): Promise<Response> => {
     path = fixPath(path);
     cache.remove(path);
     if (!filenames.length) {
@@ -159,12 +137,8 @@ export const removeItems = (path, filenames) => {
 
 /**
  * Wrap API response for moving a file or folder
- * @param {String} path
- * @param {String} destination
- * @param {Array<String>} filenames
- * @returns {Promise<Response>}
  */
-export const moveItems = (path, destination, filenames) => {
+export const moveItems = (path: string, destination: string, filenames: string[]): Promise<Response> => {
     path = fixPath(path);
     destination = fixPath(destination);
     cache.remove(path, destination);
@@ -177,12 +151,8 @@ export const moveItems = (path, destination, filenames) => {
 
 /**
  * Wrap API response for copying a file or folder
- * @param {String} path
- * @param {String} destination
- * @param {Array<String>} filenames
- * @returns {Promise<Response>}
  */
-export const copyItems = (path, destination, filenames) => {
+export const copyItems = (path: string, destination: string, filenames: string[]): Promise<Response> => {
     path = fixPath(path);
     destination = fixPath(destination);
     cache.remove(path, destination);
@@ -195,11 +165,8 @@ export const copyItems = (path, destination, filenames) => {
 
 /**
  * Wrap API response for uploading files
- * @param {String} path
- * @param {Object<FileList>} fileList
- * @returns {Promise<Response>}
  */
-export const uploadFiles = (path, fileList) => {
+export const uploadFiles = (path: string, fileList: FileList): Promise<Response> => {
     path = fixPath(path);
     cache.remove(path);
 
@@ -212,12 +179,8 @@ export const uploadFiles = (path, fileList) => {
 
 /**
  * Wrap API response for uploading a file
- * @param {String} path
- * @param {String} fileName
- * @param {Blob} content
- * @returns {Promise<Response>}
  */
-export const updateFile = (path, fileName, content) => {
+export const updateFile = (path: string, fileName: string, content: Blob): Promise<Response> => {
     path = fixPath(path);
     cache.remove(path);
     return API.updateFile(path, fileName, content)
@@ -226,11 +189,8 @@ export const updateFile = (path, fileName, content) => {
 
 /**
  * Wrap API response for zipping multiple items
- * @param {String} path
- * @param {Array<API.FolderItems>} itemList
- * @returns {Promise<Object>}
  */
-export const getAsZip = (path, itemList) => {
+export const getAsZip = (path: string, itemList: Item[]): Promise<JSZip> => {
     path = fixPath(path);
     const zip = new JSZip();
 
@@ -240,22 +200,18 @@ export const getAsZip = (path, itemList) => {
 
 /**
  * Add items to a zip object recursively
- * @param {Object} zip
- * @param {String} path
- * @param {Array<API.FolderItems>} itemList
- * @returns {Promise<Object>}
  */
-const addItemsToZip = (zip, path, itemList) => {
+const addItemsToZip = (zip: JSZip, path: string, itemList: Item[]): Promise<void[]> => {
     const promises = itemList.map(async item => {
         if (item instanceof FolderItem) {
             const zipFolder = zip.folder(item.name);
             const folderPath = `${path}/${item.name}`;
             const folderItems = await getItemList(folderPath);
-            return addItemsToZip(zipFolder, folderPath, folderItems);
+            await addItemsToZip(zipFolder, folderPath, folderItems);
         }
         else if (item instanceof FileItem) {
             const blob = await getFileBlob(path, item.name);
-            return zip.file(item.name, blob, { binary: true });
+            zip.file(item.name, blob, { binary: true });
         }
     });
 
@@ -264,11 +220,8 @@ const addItemsToZip = (zip, path, itemList) => {
 
 /**
  * Wrap API response for extracting a zip archive
- * @param {String} path
- * @param {String} destination
- * @param {String} fileName
  */
-export const extractZipArchive = async (path, destination = path, fileName) => {
+export const extractZipArchive = async (path: string, destination: string = path, fileName: string) => {
     const blob = await getFileBlob(path, fileName);
     const zip = await JSZip.loadAsync(blob);
 
@@ -277,11 +230,8 @@ export const extractZipArchive = async (path, destination = path, fileName) => {
 
 /**
  * Recursively upload all files and folders from an extracted zip archive
- * @param {Object} zip 
- * @param {String} destination 
- * @param {String} curFolder 
  */
-async function uploadExtractedZipArchive(zip, destination, curFolder = '') {
+async function uploadExtractedZipArchive(zip: JSZip, destination: string, curFolder = ''): Promise<void[]> {
     const promises = getItemsInZipFolder(zip, curFolder)
         .map(async item => {
             const relativePath = item.name;
@@ -290,18 +240,18 @@ async function uploadExtractedZipArchive(zip, destination, curFolder = '') {
 
             if (item.dir) {
                 await createFolder(path, itemName);
-                return uploadExtractedZipArchive(zip, destination, relativePath);
+                await uploadExtractedZipArchive(zip, destination, relativePath);
             }
             else {
                 const blob = await item.async('blob');
-                return updateFile(path, itemName, blob);
+                await updateFile(path, itemName, blob);
             }
         });
 
     return Promise.all(promises);
 };
 
-function getItemsInZipFolder(zip, folderPath) {
+function getItemsInZipFolder(zip: JSZip, folderPath: string): JSZip.JSZipObject[] {
     return Object.keys(zip.files)
         .filter(fileName => {
             // Only items in the current folder and subfolders
@@ -318,12 +268,12 @@ function getItemsInZipFolder(zip, folderPath) {
         .map(key => zip.files[key]);
 };
 
-function getItemNameFromPath(path) {
+function getItemNameFromPath(path: string): string {
     path = path.endsWith('/') ? path.slice(0, -1) : path;
     return path.substr(path.lastIndexOf('/') + 1);
 }
 
-function getParentPathFromPath(path) {
+function getParentPathFromPath(path: string): string {
     path = path.endsWith('/') ? path.slice(0, -1) : path;
     path = path.substr(0, path.lastIndexOf('/'));
     return path;

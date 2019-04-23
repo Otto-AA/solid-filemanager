@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import { setVisibleDialogMedia } from '../../../Actions/Actions.js';
 import Plyr from 'react-plyr';
 import 'plyr/dist/plyr.css';
-import { FileItem } from '../../../Api/Item.js';
+import { FileItem } from '../../../Api/Item';
 
 class FormDialog extends Component {
     render() {

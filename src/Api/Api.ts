@@ -1,21 +1,13 @@
 import config from './../config.js';
-import * as folderUtils from './folderUtils.js';
+import * as folderUtils from './folderUtils';
 import * as solidAuth from 'solid-auth-client';
-
-/**
- * @typedef {Object} FolderItems
- * @property {Array<{Object}>} files
- * @property {Array<{Object}>} folders
- */
+import { FolderItems } from './types';
 
 
 /**
  * Fetch API to get item
- * @param {String} path
- * @param {String} fileName
- * @returns {Response}
  */
-export async function fetchFile(path, fileName = '') {
+export async function fetchFile(path: string, fileName?: string): Promise<Response>  {
     const url = buildFileUrl(path, fileName);
     return solidAuth.fetch(url)
         .then(assertSuccessfulResponse);
@@ -24,11 +16,8 @@ export async function fetchFile(path, fileName = '') {
 
 /**
  * Fetch API to get folder
- * @param {String} path
- * @param {String} folderName
- * @returns {Response}
  */
-export async function fetchFolder(path, folderName = '') {
+export async function fetchFolder(path: string, folderName?: string): Promise<Response> {
     const url = buildFolderUrl(path, folderName);
     return solidAuth.fetch(url, { headers: { "Accept": "text/turtle" } })
         .then(assertSuccessfulResponse);
@@ -37,11 +26,8 @@ export async function fetchFolder(path, folderName = '') {
 
 /**
  * Fetch API to retrieve object containing a files and folders array
- * @param {String} path
- * @param {String} folderName
- * @returns {Promise<FolderItems>}
  */
-export async function readFolder(path, folderName = '') {
+export async function readFolder(path: string, folderName?: string): Promise<FolderItems> {
     const url = buildFolderUrl(path, folderName);
 
     const response = await fetchFolder(path, folderName);
@@ -55,12 +41,8 @@ export async function readFolder(path, folderName = '') {
 
 /**
  * Fetch API to move items
- * @param {String} path
- * @param {String} destination
- * @param {Array<String>} itemNames
- * @returns {Response}
  */
-export async function moveItems(path, destination, itemNames) {
+export async function moveItems(path: string, destination: string, itemNames: string[]): Promise<Response> {
     await copyItems(path, destination, itemNames);
     return removeItems(path, itemNames);
 };
@@ -68,12 +50,8 @@ export async function moveItems(path, destination, itemNames) {
 
 /**
  * Fetch API to rename a file
- * @param {String} path
- * @param {String} oldName
- * @param {String} newName
- * @returns {Response}
  */
-export async function renameFile(path, oldName, newName) {
+export async function renameFile(path: string, oldName: string, newName: string): Promise<Response> {
     await copyFile(path, oldName, path, newName);
     return removeItem(path, oldName);
 };
@@ -81,12 +59,8 @@ export async function renameFile(path, oldName, newName) {
 
 /**
  * Fetch API to rename a folder
- * @param {String} path
- * @param {String} oldFolderName
- * @param {String} newFolderName
- * @returns {Response}
  */
-export async function renameFolder(path, oldFolderName, newFolderName) {
+export async function renameFolder(path: string, oldFolderName: string, newFolderName: string): Promise<Response> {
     await copyFolder(path, oldFolderName, path, newFolderName);
     return removeFolderRecursively(path, oldFolderName);
 };
@@ -94,12 +68,8 @@ export async function renameFolder(path, oldFolderName, newFolderName) {
 
 /**
  * Fetch API to copy files
- * @param {String} path
- * @param {String} destination
- * @param {Array} itemNames
- * @returns {Response}
  */
-export async function copyItems(path, destination, itemNames) {
+export async function copyItems(path: string, destination: string, itemNames: string[]): Promise<Response> {
     let { files, folders } = await readFolder(path);
 
     files = files.filter(({ name }) => itemNames.includes(name));
@@ -117,13 +87,8 @@ export async function copyItems(path, destination, itemNames) {
 
 /**
  * Fetch API to copy a file
- * @param {String} originPath
- * @param {String} originName
- * @param {String} destinationPath
- * @param {String} destinationName
- * @returns {Response}
  */
-export async function copyFile(originPath, originName, destinationPath, destinationName) {
+export async function copyFile(originPath: string, originName: string, destinationPath: string, destinationName: string): Promise<Response> {
     const fileResponse = await fetchFile(originPath, originName);
     const content = await fileResponse.blob();
 
@@ -133,13 +98,8 @@ export async function copyFile(originPath, originName, destinationPath, destinat
 
 /**
  * Fetch API to copy a folder recursively
- * @param {String} originPath 
- * @param {String} originName 
- * @param {String} destinationPath 
- * @param {String} destinationName 
- * @return {Response}
  */
-export async function copyFolder(originPath, originName, destinationPath, destinationName) {
+export async function copyFolder(originPath: string, originName: string, destinationPath: string, destinationName: string): Promise<Response> {
     // TODO: Combine these two promises for better performance
     await createFolder(destinationPath, destinationName);
     const { files, folders } = await readFolder(originPath, originName);
@@ -156,11 +116,8 @@ export async function copyFolder(originPath, originName, destinationPath, destin
 
 /**
  * Fetch API to upload files
- * @param {String} path
- * @param {FileList} fileList
- * @returns {Response}
  */
-export async function upload(path, fileList) {
+export async function upload(path: string, fileList: FileList): Promise<Response> {
     const promises = Array.from(fileList).map(file => updateFile(path, file.name, file));
     await Promise.all(promises);
     return new Response();
@@ -169,26 +126,19 @@ export async function upload(path, fileList) {
 
 /**
  * Fetch API to create a folder
- * @param {String} path
- * @param {String} folderName
- * @returns {Response}
  */
-export async function createFolder(path, folderName) {
+export async function createFolder(path: string, folderName: string): Promise<Response> {
     if (await folderExists(path, folderName))
         return new Response();
 
-    return createItem(path, folderName, '', '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"');
+    return createItem(path, folderName, new Blob(), '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"');
 }
 
 
 /**
  * Fetch API to replace or create a new file
- * @param {String} path
- * @param {String} fileName
- * @param {String} content
- * @returns {Response}
  */
-export async function updateFile(path, fileName, content) {
+export async function updateFile(path: string, fileName: string, content: Blob): Promise<Response> {
     await removeItem(path, fileName);
     return createFile(path, fileName, content);
 }
@@ -196,25 +146,16 @@ export async function updateFile(path, fileName, content) {
 
 /**
  * Fetch API to create a new file
- * @param {String} path
- * @param {String} fileName
- * @param {String} content
- * @returns {Response}
  */
-export async function createFile(path, fileName, content) {
+export async function createFile(path: string, fileName: string, content: Blob): Promise<Response> {
     return createItem(path, fileName, content, '<http://www.w3.org/ns/ldp#Resource>; rel="type"');
 }
 
 
 /**
  * Fetch API to create create an item
- * @param {String} path
- * @param {String} itemName
- * @param {String} content
- * @param {String} link
- * @returns {Response}
  */
-async function createItem(path, itemName, content, link) {
+async function createItem(path: string, itemName: string, content: Blob, link: string): Promise<Response> {
     const baseUrl = `${config.getHost()}${path}`;
     const request = {
         method: 'POST',
@@ -233,23 +174,17 @@ async function createItem(path, itemName, content, link) {
 
 /**
  * Fetch API to remove multiple items
- * @param {String} path
- * @param {Array} itemNames
- * @returns {Response}
  */
-export async function removeItems(path, itemNames) {
-    await Promise.all(itemNames.map(itemName => removeItem(path, itemName)));
-    return new Response();
+export async function removeItems(path: string, itemNames: string[]): Promise<Response> {
+    return Promise.all(itemNames.map(itemName => removeItem(path, itemName)))
+        .then(() => new Response());
 };
 
 
 /**
  * Fetch API to remove one item
- * @param {String} path 
- * @param {String} itemName 
- * @returns {Response}
  */
-export async function removeItem(path, itemName) {
+export async function removeItem(path: string, itemName: string): Promise<Response> {
     const url = buildFileUrl(path, itemName);
 
     const response = await solidAuth.fetch(url, { method: 'DELETE' });
@@ -271,11 +206,8 @@ export async function removeItem(path, itemName) {
 
 /**
  * Fetch API to remove contents and folder itself recursively
- * @param {String} path 
- * @param {String} folderName
- * @returns {Response}
  */
-export async function removeFolderRecursively(path, folderName) {
+export async function removeFolderRecursively(path: string, folderName: string): Promise<Response> {
     await removeFolderContents(path, folderName);
     return removeItem(path, folderName);
 }
@@ -283,11 +215,8 @@ export async function removeFolderRecursively(path, folderName) {
 
 /**
  * Fetch API to remove contents of one folder recursively
- * @param {String} path 
- * @param {String} folderName
- * @returns {Response}
  */
-export async function removeFolderContents(path, folderName) {
+export async function removeFolderContents(path: string, folderName: string): Promise<Response> {
     const folderPath = `${path}/${folderName}`;
 
     const { files, folders } = await readFolder(path, folderName);
@@ -302,11 +231,8 @@ export async function removeFolderContents(path, folderName) {
 
 /**
  * Fetch API to check if a folder exists
- * @param {String} path
- * @param {String} folderName
- * @returns {Promise<Boolean>}
  */
-export async function folderExists(path, folderName) {
+export async function folderExists(path: string, folderName: string): Promise<Boolean> {
     try {
         await fetchFolder(path, folderName);
         return true;
@@ -322,23 +248,17 @@ export async function folderExists(path, folderName) {
 
 /**
  * Build up an url from a path relative to the storage location and a folder name
- * @param {String} path
- * @param {String} folderName
- * @return {String}
  */
-function buildFolderUrl(path, folderName = '') {
+function buildFolderUrl(path: string, folderName?: string): string {
     return buildFileUrl(path, folderName) + '/';
 }
 
 
 /**
  * Build up an url from a path relative to the storage location and a fileName
- * @param {String} path 
- * @param {Sting} fileName 
- * @return {String}
  */
-function buildFileUrl(path, fileName = '') {
-    let url = `${config.getHost()}${path}/${fileName}`;
+function buildFileUrl(path: string, fileName?: string): string {
+    let url = `${config.getHost()}${path}/${fileName || ''}`;
     while (url.slice(-1) === '/')
         url = url.slice(0, -1);
 
@@ -351,8 +271,8 @@ function buildFileUrl(path, fileName = '') {
  * @param {Response} response
  * @returns {Response}
  */
-const assertSuccessfulResponse = (response) => {
+function assertSuccessfulResponse(response: Response): Response {
     if (!response.ok)
         throw response;
     return response;
-};
+}

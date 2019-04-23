@@ -2,17 +2,15 @@
  * Class for an arbitrary item from a solid pod
  */
 export class Item {
-    /**
-     * @param {String} url
-     * @param {Number} size
-     */
-    constructor(url, size) {
-        if (new.target === Item)
-            throw new Error("Class Item should not directly be used");
+    _name: string;
+    _path: string[];
+    _url: string;
+    _size?: string
 
+    constructor(url: string, size?: string) {
         const path = getPathFromUrl(url);
 
-        this._name = path.pop();
+        this._name = path.pop() || '';
         this._path = path;
         this._url = url;
         this._size = size;
@@ -24,7 +22,7 @@ export class Item {
     get url() { return this._url; }
     get size() { return this._size; }
 
-    equals(item) {
+    equals(item: Item) {
         return this.name === item.name
             && this.path.length === item.path.length
             && this.path.every((val, index) => val === item.path[index]);
@@ -35,7 +33,7 @@ export class Item {
     }
 
     getDisplaySize() {
-        return getHumanFileSize(this.size);
+        return this._size ? getHumanFileSize(this._size) : 'Unknown size';
     }
 }
 
@@ -75,20 +73,18 @@ const patterns = {
 
 /**
  * Calculate file size by bytes in human readable format
- * @param {Number} bytes
- * @returns {String}
  */
-export const getHumanFileSize = (bytes) => {
+export const getHumanFileSize = (byteString: string): string => {
+    const bytes = parseInt(byteString);
     const e = (Math.log(bytes) / Math.log(1e3)) | 0;
     return +(bytes / Math.pow(1e3, e)).toFixed(2) + ' ' + ('kMGTPEZY'[e - 1] || '') + 'B';
 };
 
 
 /**
- * @param {String} url
- * @returns {Array<String>} path - containing the path including the last element (e.g. [public, test, index.html])
+ * Get path including the last element (e.g. [public, test, index.html])
  */
-const getPathFromUrl = url => {
-    url = new URL(url);
+const getPathFromUrl = (urlString: string): string[] => {
+    const url = new URL(urlString);
     return url.pathname.split('/').filter(val => val !== '');
 }

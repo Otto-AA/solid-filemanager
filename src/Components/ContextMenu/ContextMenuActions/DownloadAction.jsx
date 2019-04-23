@@ -5,7 +5,7 @@ import { downloadItems } from '../../../Actions/Actions.js';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Typography from '@material-ui/core/Typography';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
-import { FileItem } from '../../../Api/Item.js';
+import { FileItem } from '../../../Api/Item';
 
 function DownloadAction(props) {
     const {handleClick, selectedItems} = props;
