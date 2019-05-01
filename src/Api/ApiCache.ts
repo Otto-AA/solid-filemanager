@@ -15,7 +15,7 @@ export default class ApiCache {
     /**
      * Return true if the url is already cached
      */
-    contains(path: string): Boolean {
+    contains(path: string): boolean {
         return this._data.hasOwnProperty(path);
     }
 

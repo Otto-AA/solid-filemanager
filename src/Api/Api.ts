@@ -1,4 +1,4 @@
-import config from './../config.js';
+import config from './../config';
 import * as folderUtils from './folderUtils';
 import * as solidAuth from 'solid-auth-client';
 import { FolderItems } from './types';
@@ -232,7 +232,7 @@ export async function removeFolderContents(path: string, folderName: string): Pr
 /**
  * Fetch API to check if a folder exists
  */
-export async function folderExists(path: string, folderName: string): Promise<Boolean> {
+export async function folderExists(path: string, folderName: string): Promise<boolean> {
     try {
         await fetchFolder(path, folderName);
         return true;

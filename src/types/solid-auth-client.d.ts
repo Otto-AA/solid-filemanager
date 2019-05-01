@@ -13,7 +13,17 @@ interface AsyncStorage {
     removeItem(key: string): Promise<void>;
 }
 type loginOptions = {
-    callbackUri: string,
+    callbackUri?: string,
     popupUri: string,
-    storage: AsyncStorage
+    storage?: AsyncStorage
 }
+
+type webIdOidcSession = {
+    idp: string,
+    webId: string,
+    accessToken: string,
+    idToken: string,
+    clientId: string,
+    sessionKey: string
+}
+type Session = webIdOidcSession;

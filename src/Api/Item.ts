@@ -74,8 +74,10 @@ const patterns = {
 /**
  * Calculate file size by bytes in human readable format
  */
-export const getHumanFileSize = (byteString: string): string => {
-    const bytes = parseInt(byteString);
+export const getHumanFileSize = (byteString: string|number): string => {
+    const bytes = typeof byteString === 'string' ?
+        parseInt(byteString)
+        : byteString;
     const e = (Math.log(bytes) / Math.log(1e3)) | 0;
     return +(bytes / Math.pow(1e3, e)).toFixed(2) + ' ' + ('kMGTPEZY'[e - 1] || '') + 'B';
 };

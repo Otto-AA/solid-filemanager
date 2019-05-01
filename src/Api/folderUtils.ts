@@ -1,4 +1,4 @@
-// Based on https://github.com/jeff-zucker/solid-file-client/blob/master/src/folderUtils.js
+// Based on https://github.com/jeff-zucker/solid-file-client/blob/master/src/folderUtils
 import * as rdflib from 'rdflib';
 import { FileItem, FolderItem } from './Item';
 import { FolderItems } from './types';
@@ -14,9 +14,9 @@ export function getSizeByGraph(graph: rdflib.IndexedFormula, subjectName: string
 /**
  * @param {rdflib.IndexedFormula} graph a rdflib.graph() database instance
  * @param {string} baseUrl location of the folder
- * @returns {Boolean}
+ * @returns {boolean}
  */
-export function isFolder(graph: rdflib.IndexedFormula, baseUrl: string): Boolean {
+export function isFolder(graph: rdflib.IndexedFormula, baseUrl: string): boolean {
     const folderNode = rdflib.sym(baseUrl);
     const isAnInstanceOfClass = rdflib.sym('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
     const types = graph.each(folderNode, isAnInstanceOfClass, undefined, undefined);
