@@ -138,7 +138,7 @@ export async function createFolder(path: string, folderName: string): Promise<Re
 /**
  * Fetch API to replace or create a new file
  */
-export async function updateFile(path: string, fileName: string, content: Blob): Promise<Response> {
+export async function updateFile(path: string, fileName: string, content: Blob|string): Promise<Response> {
     await removeItem(path, fileName);
     return createFile(path, fileName, content);
 }
@@ -147,7 +147,7 @@ export async function updateFile(path: string, fileName: string, content: Blob):
 /**
  * Fetch API to create a new file
  */
-export async function createFile(path: string, fileName: string, content: Blob): Promise<Response> {
+export async function createFile(path: string, fileName: string, content: Blob|string): Promise<Response> {
     return createItem(path, fileName, content, '<http://www.w3.org/ns/ldp#Resource>; rel="type"');
 }
 
@@ -155,14 +155,14 @@ export async function createFile(path: string, fileName: string, content: Blob):
 /**
  * Fetch API to create create an item
  */
-async function createItem(path: string, itemName: string, content: Blob, link: string): Promise<Response> {
+async function createItem(path: string, itemName: string, content: Blob|string, link: string): Promise<Response> {
     const baseUrl = `${config.getHost()}${path}`;
     const request = {
         method: 'POST',
         headers: {
             link,
             slug: itemName,
-            'Content-Type': undefined
+            'Content-Type': <any>undefined // TODO: This hack can be removed if this issue is fixed: https://github.com/solid/node-solid-server/issues/1165
         },
         body: content
     };

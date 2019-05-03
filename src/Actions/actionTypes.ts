@@ -13,7 +13,7 @@ export const SET_PATH = 'SET_PATH';
 export const SET_LOGGED_IN = 'SET_LOGGED_IN';
 export const SET_LOGGED_OUT = 'SET_LOGGED_OUT';
 export const RESET_HOST = 'RESET_HOST';
-export const SET_HOST = 'SET_HOST'; // TODO: Consider renaming
+export const SET_HOST = 'SET_HOST'; // TODO: Consider renaming to BASE_URL
 export const RESET_WEB_ID = 'RESET_WEB_ID';
 export const SET_WEB_ID = 'SET_WEB_ID';
 

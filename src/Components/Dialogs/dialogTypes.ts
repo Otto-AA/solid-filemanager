@@ -1,6 +1,6 @@
 export interface DialogDispatchProps {
     handleClose(event: DialogButtonClickEvent): void;
-    handleSubmit?(event: DialogButtonClickEvent, options?: { [k: string]: any }): void;
+    handleSubmit?(event: DialogButtonClickEvent, options?: Record<string, any>): void;
 }
 
 export interface DialogStateProps {

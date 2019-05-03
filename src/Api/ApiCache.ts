@@ -2,7 +2,7 @@
 import { Item } from './Item';
 
 export default class ApiCache {
-    _data: { [path: string]: Item[] } = {};
+    _data: Record<string, Item[]> = {};
 
     /**
      * Add data to the cache

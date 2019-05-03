@@ -23,7 +23,7 @@ class FormDialog extends Component<CreateFileProps> {
     }
 
     render() {
-        const { handleClose, handleSubmit, open } = this.props;
+        const { handleClose, open } = this.props;
 
         return (
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-create-file" fullWidth={true} maxWidth={'sm'}>

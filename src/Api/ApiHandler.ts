@@ -20,7 +20,7 @@ const handleFetchError = async (error: Error | Response | string) => {
         console.error(`url: ${error.url}`);
         console.error(`status: ${error.status}`);
 
-        const displayMessages: { [key: string]: string } = {
+        const displayMessages: Record<string, string> = {
             '401': `The ressource at ${error.url} requires you to login.`,
             '403': `You don't have permission to access the ressource at ${error.url}.
             Please make sure that you are logged in with the correct account.
@@ -180,7 +180,7 @@ export const uploadFiles = (path: string, fileList: FileList): Promise<Response>
 /**
  * Wrap API response for uploading a file
  */
-export const updateFile = (path: string, fileName: string, content: Blob): Promise<Response> => {
+export const updateFile = (path: string, fileName: string, content: Blob|string): Promise<Response> => {
     path = fixPath(path);
     cache.remove(path);
     return API.updateFile(path, fileName, content)

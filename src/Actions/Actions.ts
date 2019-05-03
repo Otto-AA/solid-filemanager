@@ -91,22 +91,22 @@ export const createFile = (fileName: string): MyThunk => (dispatch, getState) =>
         .then(r => {
             dispatch(closeDialog(DIALOGS.CREATE_FILE));
             dispatch(displayCurrentItemList());
-
-            return APIHandler.getItemList(path.join('/'))
-                .then(itemList => {
-                    const item = itemList.find(item => item.name === fileName || item.name === encodeURI(fileName));
-                    if (!item)
-                        throw new Error("Couldn't load created file for editing");
-                    dispatch(selectItems([item]));
-                    dispatch(getFileContent(item.name));
-                });
+            dispatch(loadAndEditFile(fileName));
+            return APIHandler.getItemList(path.join('/'));
+        })
+        .then(itemList => itemList.find(item => item.getDisplayName() === fileName))
+        .then(item => {
+            if (!item)
+                throw new Error("Couldn't load created file for editing");
+            dispatch(selectItem(item));
+            dispatch(getFileContent(item.name));
         })
         .catch(r => dispatch(setErrorMessage(String(r))))
         .finally(() => dispatch(stopLoading()));
 };
 
 
-export const updateTextFile = (fileName: string, content: Blob): MyThunk => (dispatch, getState) => {
+export const updateTextFile = (fileName: string, content: Blob|string): MyThunk => (dispatch, getState) => {
     const { path } = getState();
     dispatch(displayLoading());
 
@@ -426,7 +426,7 @@ export const rightClickOnFile = (item: Item): MyThunk => (dispatch, getState) =>
     const { items: { selected } } = getState();
     const isSelected = selected.includes(item);
 
-    !isSelected && dispatch(selectItems([item]));
+    !isSelected && dispatch(selectItem(item));
 };
 
 
@@ -453,6 +453,7 @@ export const setItems = makeActionCreator<Item[]>(SET_ITEMS);
 export const resetItems = () => setItems([]);
 
 export const selectItems = makeActionCreator<Item[]>(SELECT_ITEMS);
+export const selectItem = (item: Item) => selectItems([item]);
 export const resetSelectedItems = () => selectItems([]);
 export const toggleSelectedItem = makeActionCreator<Item>(TOGGLE_SELECTED_ITEM);
 export const deselectItem = makeActionCreator<Item>(DESELECT_ITEM);

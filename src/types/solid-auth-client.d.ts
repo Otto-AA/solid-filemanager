@@ -1,5 +1,5 @@
 declare module 'solid-auth-client' {
-    function fetch(input: RequestInfo, options?: RequestOptions): Promise<Response>;
+    function fetch(input: RequestInfo, options?: RequestInit): Promise<Response>;
     function login(idp: string, options: loginOptions): Promise<Session | null>;
     function popupLogin(options: loginOptions): Promise<Session | null>;
     function currentSession(storage?: AsyncStorage): Promise<Session | null>;

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, createRef } from 'react';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -10,8 +10,10 @@ import { updateTextFile, MyDispatch, closeDialog } from '../../../Actions/Action
 import { DialogStateProps, DialogDispatchProps, DialogButtonClickEvent } from '../dialogTypes';
 import { AppState } from '../../../Reducers/reducer';
 import { DIALOGS } from '../../../Actions/actionTypes';
+import { Item } from '../../../Api/Item';
 
 class FormDialog extends Component<EditProps> {
+    private textField: React.RefObject<HTMLTextAreaElement> = createRef();
     state = {
         lastBlobUrl: null as string|null,
         content: null as string|null,
@@ -42,29 +44,31 @@ class FormDialog extends Component<EditProps> {
 
     handleSave(event: DialogButtonClickEvent) {
         event.preventDefault();
-        const textarea = event.currentTarget.querySelector('textarea');
-        if (textarea) {
-            const content = textarea.value;
+        const textField = this.textField.current;
+        const item = this.props.item;
+        if (textField && item) {
+            const content = textField.value;
             this.props.handleSubmit(event, {
-                itemName: this.props.itemName,
+                itemName: item.name,
                 content
             });
         }
     }
 
     render() {
-        const { handleClose, open } = this.props;
+        const { handleClose, open, item } = this.props;
+        const itemName = item ? item.getDisplayName() : 'No item selected';
         const textAreaStyle = {
             width: '100%',
             minHeight: '300px'
         };
-        const textArea = <textarea style={textAreaStyle} defaultValue={this.state.content || ''} />;
+        const textArea = <textarea style={textAreaStyle} defaultValue={this.state.content || ''} ref={this.textField} />;
 
         return (
             <div>
               <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-edit" fullWidth={true} maxWidth={'sm'}>
                 <form>
-                  <DialogTitle id="form-dialog-edit">Editing file </DialogTitle>
+                  <DialogTitle id="form-dialog-edit">Editing file: {itemName} </DialogTitle>
                   <DialogContent>
                     <DialogContentText>
                       {this.state.loading ? 'Loading...' : textArea}
@@ -86,7 +90,7 @@ class FormDialog extends Component<EditProps> {
 }
 
 interface StateProps extends DialogStateProps {
-    itemName: string;
+    item: Item;
     blobUrl: string;
 }
 interface DispatchProps extends DialogDispatchProps {
@@ -97,7 +101,7 @@ interface EditProps extends StateProps, DispatchProps {}
 const mapStateToProps = (state: AppState): StateProps => {
     return {
         open: state.visibleDialogs.EDIT, // TODO: rename visibleDialogs (e.g. to dialogIsOpen)
-        itemName: state.items.selected.length ? state.items.selected[0].name : '',
+        item: state.items.selected[0],
         blobUrl: state.blob || ''
     };
 };
@@ -108,7 +112,7 @@ const mapDispatchToProps = (dispatch: MyDispatch): DispatchProps => {
             dispatch(closeDialog(DIALOGS.EDIT));
         },
         handleSubmit: (event, { itemName, content }) => {
-            dispatch(updateTextFile(itemName, new Blob([content])));
+            dispatch(updateTextFile(itemName, content));
         }
     };
 };

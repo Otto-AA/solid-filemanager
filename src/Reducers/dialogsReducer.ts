@@ -1,9 +1,9 @@
 import { DIALOGS, Action, OPEN_DIALOG, CLOSE_DIALOG, OPEN_CONTEXT_MENU, CLOSE_CONTEXT_MENU } from "../Actions/actionTypes";
 
 // Initialize state with values of DIALOGS as keys and false (closed) as value
-const initialVisibleDialogs: { [k in DIALOGS]: boolean } = Object.values(DIALOGS)
-    .map((name: DIALOGS) => ({ [name]: false } as { [k in DIALOGS]?: boolean }))
-    .reduce((prev, cur) => ({ ...prev, ...cur })) as { [k in DIALOGS]: boolean };
+const initialVisibleDialogs: Record<DIALOGS, boolean> = Object.values(DIALOGS)
+    .map((name: DIALOGS) => ({ [name]: false } as Record<DIALOGS, boolean>))
+    .reduce((prev, cur) => ({ ...prev, ...cur })) as Record<DIALOGS, boolean>;
 
 export const visibleDialogs = (state = initialVisibleDialogs, action: Action<DIALOGS>): typeof initialVisibleDialogs => {
     switch (action.type) {
