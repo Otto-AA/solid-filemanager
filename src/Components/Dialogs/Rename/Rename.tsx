@@ -11,37 +11,28 @@ import { FolderItem, Item } from '../../../Api/Item';
 import { DialogStateProps, DialogDispatchProps, DialogButtonClickEvent } from '../dialogTypes';
 import { AppState } from '../../../Reducers/reducer';
 import { DIALOGS } from '../../../Actions/actionTypes';
-
-// TODO: Create common input getter ?
 class FormDialog extends Component<RenameProps> {
     private textField: React.RefObject<HTMLInputElement> = createRef();
 
-    componentDidUpdate() {
-        const textField = this.textField.current;
-        if (textField && this.props.item) {
-            textField.value = this.props.item.name;
-        }
-    }
-
     handleSubmit(event: DialogButtonClickEvent) {
         const textField = this.textField.current;
-        if (textField) {
-            const item = this.props.item;
+        const item = this.props.item;
+        if (textField && item) {
             const newName = textField.value;
-            if (item)
-                this.props.handleSubmit(event, { item, newName });
+            this.props.handleSubmit(event, { item, newName });
         }
     }
 
     render() {
-        const { handleClose, open } = this.props;
+        const { handleClose, open, item } = this.props;
+        const previousName = item ? item.name : '';
 
         return (
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-create-folder" fullWidth={true} maxWidth={'sm'}>
                 <form>
                   <DialogTitle id="form-dialog-create-folder">Rename</DialogTitle>
                   <DialogContent>
-                    <TextField autoFocus fullWidth margin="dense" label="Item name" type="text" inputRef={this.textField} />
+                    <TextField autoFocus fullWidth margin="dense" label="Item name" type="text" inputRef={this.textField} defaultValue={previousName} />
                   </DialogContent>
                   <DialogActions>
                     <Button onClick={handleClose} color="primary" type="button">
@@ -80,7 +71,7 @@ const mapDispatchToProps = (dispatch: MyDispatch): DispatchProps => {
         },
         handleSubmit: (event, { item, newName }) => {
             event.preventDefault();
-            if (item instanceof FolderItem) // TODO: Cretae renameItem
+            if (item instanceof FolderItem) // TODO: Create renameItem
                 dispatch(renameFolder(item.name, newName));
             else
                 dispatch(renameFile(item.name, newName));
