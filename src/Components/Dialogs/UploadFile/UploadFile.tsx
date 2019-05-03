@@ -67,20 +67,11 @@ const mapDispatchToProps = (dispatch: MyDispatch): DispatchProps => {
             dispatch(resetFileUploader());
         },
         handleSubmit: (event) => {
-            // TODO: Refactor this logic. Maybe remove fileList from state and handle it inside the component.
             event.preventDefault();
-            const inputElement = event.currentTarget.querySelector('input[type=file]') as HTMLInputElement | null;
-            if (!inputElement)
-                return dispatch(setErrorMessage("Error finding the input element"));
-
-            const files = inputElement.files;
-            if (!files)
-                return dispatch(setErrorMessage("Didn't find any files for uploading"));
-
-            dispatch(uploadFiles(files));
+            dispatch(uploadFiles());
         },
         handleSelectedFiles: (event) => {
-            const files = event.target.files ? event.target.files : new FileList();
+            const files = event.target.files;
             dispatch(setFileUploadList(files));
         },
         handleReset: () => {

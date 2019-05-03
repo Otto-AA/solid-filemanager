@@ -64,8 +64,12 @@ export const clearCache = (): MyThunk => (dispatch, getState) => APIHandler.clea
 /**
  * Request API to get file list for the selected path then refresh UI
  */
-export const uploadFiles = (fileList: FileList): MyThunk => (dispatch, getState) => {
-    const { path } = getState();
+export const uploadFiles = (): MyThunk => (dispatch, getState) => {
+    const { path, upload: { fileList } } = getState();
+
+    if (fileList === null)
+        return dispatch(setErrorMessage("Couldn't find files to upload"));
+
     dispatch(displayLoading());
     dispatch(resetSelectedItems());
     dispatch(setFileUploadProgress(50));
