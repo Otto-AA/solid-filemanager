@@ -1,3 +1,5 @@
+**NOTE: Some things may be broken currently.** There are some changes which still needs to be tested and probably fixed. Due to the current situation I will wait with this until solid-file-client is ready which should (hopefully) be ready this September. Then I will start switching to use solid-file-client and check again everything for errors and compatibility with the inrupt.net and solid.community servers. **I expect everything to work by the end of October**. I am sorry for any inconvenience caused by this.
+
 # Solid Filemanager
 
 This is a file manager for solid pods, based on [this awesome react app](https://github.com/joni2back/react-filemanager/).
