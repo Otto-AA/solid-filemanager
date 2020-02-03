@@ -17,6 +17,7 @@ class FormDialog extends Component<EditProps> {
     state = {
         lastBlobUrl: null as string|null,
         content: null as string|null,
+        contentType: null as string|null,
         loading: false
     };
 
@@ -29,11 +30,10 @@ class FormDialog extends Component<EditProps> {
                 loading: true
             });
 
-            this.props.blobUrl && fetch(this.props.blobUrl).then(r => {
-                return r.text();
-            }).then(t => {
+            this.props.blobUrl && fetch(this.props.blobUrl).then(async r => {
                 this.setState({
-                    content: t
+                    content: await r.text(),
+                    contentType: r.headers.get('content-type')
                 });
                 this.setState({
                     loading: false
@@ -48,9 +48,11 @@ class FormDialog extends Component<EditProps> {
         const item = this.props.item;
         if (textField && item) {
             const content = textField.value;
+            const contentType = this.state.contentType ? this.state.contentType : 'text/plain';
             this.props.handleSubmit(event, {
                 itemName: item.name,
-                content
+                content,
+                contentType
             });
         }
     }
@@ -94,7 +96,7 @@ interface StateProps extends DialogStateProps {
     blobUrl: string;
 }
 interface DispatchProps extends DialogDispatchProps {
-    handleSubmit(event: DialogButtonClickEvent, { itemName, content }: { itemName: string, content: string }): void;
+    handleSubmit(event: DialogButtonClickEvent, { itemName, content, contentType }: { itemName: string, content: string, contentType: string }): void;
 }
 interface EditProps extends StateProps, DispatchProps {}
 
@@ -111,8 +113,8 @@ const mapDispatchToProps = (dispatch: MyDispatch): DispatchProps => {
         handleClose: () => {
             dispatch(closeDialog(DIALOGS.EDIT));
         },
-        handleSubmit: (event, { itemName, content }) => {
-            dispatch(updateTextFile(itemName, content));
+        handleSubmit: (event, { itemName, content, contentType }) => {
+            dispatch(updateTextFile(itemName, content, contentType));
         }
     };
 };

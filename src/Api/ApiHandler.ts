@@ -1,8 +1,12 @@
-import * as API from './Api';
 import JSZip from 'jszip';
 import { FileItem, FolderItem, Item } from './Item';
 import ApiCache from './ApiCache';
+import config from './../config';
+import * as solidAuth from 'solid-auth-client';
+import SolidFileClient from 'solid-file-client';
+import { guessContentType } from './contentTypes';
 
+const fileClient = new SolidFileClient(solidAuth, { enableLogging: true });
 const cache = new ApiCache();
 
 /**
@@ -62,16 +66,25 @@ const fixPath = (path: string): string => {
  * Wrap API response for retrieving item list
  * itemList is cached automatically
  * @param {String} path
- * @returns {Promise<API.FolderItems>}
+ * @returns {Promise<Item[]>}
  */
-export const getItemList = (path: string): Promise<Item[]> => {
+export const getItemList = async (path: string): Promise<Item[]> => {
     path = fixPath(path);
     if (cache.contains(path))
-        return Promise.resolve(cache.get(path));
-    return API.readFolder(path)
-        .then(({ files, folders }) => [...files, ...folders])
-        .then(itemList => cache.add(path, itemList))
-        .catch(handleFetchError);
+        return cache.get(path);
+
+    try {
+        const url = buildFolderUrl(path);
+        const folderData = await fileClient.readFolder(url, { links: SolidFileClient.LINKS.EXCLUDE })
+        const itemList = [
+            ...folderData.files.map(item => new FileItem(item.url)), // TODO: item.size
+            ...folderData.folders.map(item => new FolderItem(item.url)) // TODO: item.size
+        ]
+        cache.add(path, itemList);
+        return itemList
+    } catch (err) {
+        throw handleFetchError(err);
+    }
 };
 
 export const clearCacheForFolder = (path: string) => cache.remove(fixPath(path));
@@ -80,11 +93,14 @@ export const clearCache = () => cache.clear();
 /**
  * Wrap API response for retrieving file content
  */
-export const getFileBlob = (path: string, filename: string): Promise<Blob> => {
+export const getFileBlob = async (path: string, filename: string): Promise<Blob> => {
     path = fixPath(path);
-    return API.fetchFile(path, filename)
-        .then(response => response.blob())
-        .catch(handleFetchError);
+    try {
+        const res = await fileClient.get(buildFileUrl(path, filename));
+        return res.blob();
+    } catch (err) {
+        throw handleFetchError(err);
+    }
 };
 
 
@@ -94,7 +110,8 @@ export const getFileBlob = (path: string, filename: string): Promise<Blob> => {
 export const renameFile = (path: string, fileName: string, newFileName: string): Promise<Response> => {
     path = fixPath(path);
     cache.remove(path);
-    return API.renameFile(path, fileName, newFileName)
+    return fileClient.rename(buildFileUrl(path, fileName), newFileName)
+        .then(res => Array.isArray(res) ? res[0] : res)
         .catch(handleFetchError)
 };
 
@@ -105,7 +122,8 @@ export const renameFile = (path: string, fileName: string, newFileName: string):
 export const renameFolder = (path: string, folderName: string, newFolderName: string): Promise<Response> => {
     path = fixPath(path);
     cache.remove(path);
-    return API.renameFolder(path, folderName, newFolderName)
+    return fileClient.rename(buildFolderUrl(path, folderName), newFolderName)
+        .then(res => Array.isArray(res) ? res[0] : res)
         .catch(handleFetchError)
 };
 
@@ -118,72 +136,118 @@ export const createFolder = (path: string, folderName: string): Promise<Response
     if (!(folderName || '').trim()) {
         return Promise.reject('Invalid folder name');
     }
-    return API.createFolder(path, folderName)
+    return fileClient.createFolder(buildFolderUrl(path, folderName), {
+        merge: SolidFileClient.MERGE.KEEP_TARGET
+    })
         .catch(handleFetchError)
 };
 
 /**
+ * Fetch API to remove one item
+ */
+export async function removeItem(path: string, itemName: string): Promise<Response> { // TODO: use fileClient
+    const url = buildFileUrl(path, itemName);
+
+    return fileClient.delete(url)
+        .catch(err => {
+            if (err.status === 409 || err.status === 301) {
+                // Solid pod returns 409 if the item is a folder and is not empty
+                // Solid pod returns 301 if is attempted to read a folder url without '/' at the end (from buildFileUrl)
+                return fileClient.deleteFolderRecursively(buildFolderUrl(path, itemName));
+            }
+            else if (err.status === 404) {
+                // Don't throw if the item didn't exist
+                return err;
+            }
+            else
+                throw err
+        })
+}
+
+/**
  * Wrap API response for removing a file or folder
  */
-export const removeItems = (path: string, filenames: string[]): Promise<Response> => {
+export const removeItems = (path: string, filenames: string[]): Promise<Response[]> => {
     path = fixPath(path);
     cache.remove(path);
     if (!filenames.length) {
         return Promise.reject('No files to remove');
     }
-    return API.removeItems(path, filenames)
-        .catch(handleFetchError)
+    return Promise.all(filenames.map(name => removeItem(path, name)))
+        .catch(handleFetchError);
 };
 
 /**
  * Wrap API response for moving a file or folder
  */
-export const moveItems = (path: string, destination: string, filenames: string[]): Promise<Response> => {
+export const moveItems = (path: string, destination: string, filenames: string[]): Promise<Response[]> => {
     path = fixPath(path);
     destination = fixPath(destination);
     cache.remove(path, destination);
     if (!filenames.length) {
         return Promise.reject('No files to move');
     }
-    return API.moveItems(path, destination, filenames)
+
+    return copyItems(path, destination, filenames)
+        .then(res => removeItems(path, filenames))
         .catch(handleFetchError)
 };
 
 /**
  * Wrap API response for copying a file or folder
  */
-export const copyItems = (path: string, destination: string, filenames: string[]): Promise<Response> => {
+export const copyItems = async (path: string, destination: string, filenames: string[]): Promise<Response[]> => {
     path = fixPath(path);
     destination = fixPath(destination);
     cache.remove(path, destination);
     if (!filenames.length) {
         return Promise.reject('No files to copy');
     }
-    return API.copyItems(path, destination, filenames)
-        .catch(handleFetchError)
+
+    const items = await getItemList(path)
+        .then(items => items.filter(({ name }) => filenames.includes(name)))
+    const promises = items.map(item => item instanceof FolderItem ?
+        fileClient.copyFolder(buildFolderUrl(path, item.name), buildFolderUrl(destination, name), {
+            withAcl: false,
+            withMeta: true,
+            createPath: true,
+            merge: SolidFileClient.MERGE.KEEP_SOURCE
+        })
+        : fileClient.copyFile(buildFileUrl(path, item.name), buildFileUrl(destination, item.name), {
+            withAcl: false,
+            withMeta: true,
+            createPath: true,
+            merge: SolidFileClient.MERGE.REPLACE
+        }))
+        .flat(1) as Response[]
+    
+    return Promise.all(promises).catch(handleFetchError);
 };
 
 /**
  * Wrap API response for uploading files
  */
-export const uploadFiles = (path: string, fileList: FileList): Promise<Response> => {
+export const uploadFiles = async (path: string, fileList: FileList): Promise<Response[]> => {
     path = fixPath(path);
     cache.remove(path);
 
     if (!fileList.length) {
         return Promise.reject('No files to upload');
     }
-    return API.upload(path, fileList)
-        .catch(handleFetchError)
+    const promises = Array.from(fileList).map(file => {
+      const contentType = file.type || guessContentType(file.name, file)
+      return updateFile(path, file.name, file, file.type)
+    });
+    return Promise.all(promises).catch(handleFetchError);
 };
 
 /**
  * Wrap API response for uploading a file
  */
-export const updateFile = (path: string, fileName: string, content: Blob|string): Promise<Response> => {
+export const updateFile = (path: string, fileName: string, content: Blob|string, contentType: string): Promise<Response> => {
     path = fixPath(path);
     cache.remove(path);
-    return API.updateFile(path, fileName, content)
+    return fileClient.putFile(buildFileUrl(path, fileName), content, contentType)
         .catch(handleFetchError);
 };
 
@@ -244,7 +308,8 @@ async function uploadExtractedZipArchive(zip: JSZip, destination: string, curFol
             }
             else {
                 const blob = await item.async('blob');
-                await updateFile(path, itemName, blob);
+                const contentType = blob.type ? blob.type : await guessContentType(item.name, blob);
+                await updateFile(path, itemName, blob, contentType);
             }
         });
 
@@ -277,4 +342,23 @@ function getParentPathFromPath(path: string): string {
     path = path.endsWith('/') ? path.slice(0, -1) : path;
     path = path.substr(0, path.lastIndexOf('/'));
     return path;
+}
+
+/**
+ * Build up an url from a path relative to the storage location and a folder name
+ */
+function buildFolderUrl(path: string, folderName?: string): string {
+    return buildFileUrl(path, folderName) + '/';
+}
+
+
+/**
+ * Build up an url from a path relative to the storage location and a fileName
+ */
+function buildFileUrl(path: string, fileName?: string): string {
+    let url = `${config.getHost()}${path}/${fileName || ''}`;
+    while (url.slice(-1) === '/')
+        url = url.slice(0, -1);
+
+    return url;
 }

@@ -1,15 +1,18 @@
 import * as APIHandler from '../Api/ApiHandler';
 import * as solidAuth from 'solid-auth-client';
-import { createBrowserHistory, History } from 'history';
 import { Item, FileItem, FolderItem } from '../Api/Item';
-import { Action, ENTER_FOLDER, SET_LOGGED_IN, SET_LOGGED_OUT, SET_HOST, SET_ITEMS, SET_WEB_ID, SELECT_ITEMS, TOGGLE_SELECTED_ITEM, DESELECT_ITEM, FILTER_ITEMS, RESET_FILTER, DISPLAY_LOADING, STOP_LOADING, DIALOGS, OPEN_DIALOG, CLOSE_DIALOG, SET_LOADED_BLOB, SET_UPLOAD_FILE_LIST, SET_UPLOAD_FILE_PROGRESS, SET_PATH, MOVE_FOLDER_UPWARDS, RESET_LOADED_BLOB, RESET_HOST, RESET_WEB_ID, SET_ERROR_MESSAGE, OPEN_CONTEXT_MENU, CLOSE_CONTEXT_MENU } from './actionTypes';
+import { Action, SET_LOGGED_IN, SET_LOGGED_OUT, SET_HOST, SET_ITEMS, SET_WEB_ID, SELECT_ITEMS, TOGGLE_SELECTED_ITEM, DESELECT_ITEM, FILTER_ITEMS, RESET_FILTER, DISPLAY_LOADING, STOP_LOADING, DIALOGS, OPEN_DIALOG, CLOSE_DIALOG, SET_LOADED_BLOB, SET_UPLOAD_FILE_LIST, SET_UPLOAD_FILE_PROGRESS, SET_PATH, MOVE_FOLDER_UPWARDS, RESET_LOADED_BLOB, RESET_HOST, RESET_WEB_ID, SET_ERROR_MESSAGE, OPEN_CONTEXT_MENU, CLOSE_CONTEXT_MENU } from './actionTypes';
 import { AppState } from '../Reducers/reducer';
 import { ThunkAction, ThunkDispatch } from 'redux-thunk';
+import { guessContentType } from '../Api/contentTypes';
+import { version } from '../../package.json';
+
 
 export type MyThunk = ThunkAction<void, AppState, null, Action<any>>;
 export type MyDispatch = ThunkDispatch<AppState, null, Action<any>>;
 
 export const initApp = (): MyThunk => (dispatch, getState) => {
+    console.log(`Starting Solid-Filemanager v${version}`);
     dispatch(updateLoginStatus());
     dispatch(openDialog(DIALOGS.CHOOSE_LOCATION));
 };
@@ -87,11 +90,12 @@ export const uploadFiles = (): MyThunk => (dispatch, getState) => {
 };
 
 
-export const createFile = (fileName: string): MyThunk => (dispatch, getState) => {
+export const createFile = (fileName: string, contentType?: string): MyThunk => async (dispatch, getState) => {
     const { path } = getState();
     dispatch(displayLoading());
 
-    APIHandler.updateFile(path.join('/'), fileName, new Blob())
+    contentType = contentType ? contentType : await guessContentType(fileName);
+    APIHandler.updateFile(path.join('/'), fileName, new Blob(), contentType)
         .then(r => {
             dispatch(closeDialog(DIALOGS.CREATE_FILE));
             dispatch(displayCurrentItemList());
@@ -109,12 +113,12 @@ export const createFile = (fileName: string): MyThunk => (dispatch, getState) =>
         .finally(() => dispatch(stopLoading()));
 };
 
-
-export const updateTextFile = (fileName: string, content: Blob|string): MyThunk => (dispatch, getState) => {
+export const updateTextFile = (fileName: string, content: Blob|string, contentType?: string): MyThunk => async (dispatch, getState) => {
     const { path } = getState();
     dispatch(displayLoading());
 
-    APIHandler.updateFile(path.join('/'), fileName, content)
+    contentType = contentType ? contentType : await guessContentType(fileName, content);
+    APIHandler.updateFile(path.join('/'), fileName, content, contentType)
         .then(r => {
             dispatch(closeDialog(DIALOGS.EDIT));
             dispatch(displayCurrentItemList());
@@ -221,7 +225,7 @@ export const zipAndUpload = (items: Item[]): MyThunk => (dispatch, getState) => 
 
     APIHandler.getAsZip(path.join('/'), items)
         .then(zip => zip.generateAsync({ type: 'blob' }))
-        .then(blob => APIHandler.updateFile(path.join('/'), archiveName, blob))
+        .then(blob => APIHandler.updateFile(path.join('/'), archiveName, blob, 'application/zip'))
         .then(() => dispatch(displayCurrentItemList()))
         .catch(r => dispatch(setErrorMessage(String(r))))
         .finally(() => dispatch(stopLoading()));
