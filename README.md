@@ -1,4 +1,6 @@
-**NOTE: Some things may be broken currently.** There are some changes which still needs to be tested and probably fixed. Due to the current situation I will wait with this until solid-file-client is ready which should (hopefully) be ready this September. Then I will start switching to use solid-file-client and check again everything for errors and compatibility with the inrupt.net and solid.community servers. **I expect everything to work by the end of October**. I am sorry for any inconvenience caused by this.
+[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
+
+**NOTE**: This project has no active maintainer. It may or may not be working, and from time to time stuff will probably get fixed.
 
 # Solid Filemanager
 
