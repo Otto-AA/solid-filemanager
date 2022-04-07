@@ -206,22 +206,28 @@ export const copyItems = async (path: string, destination: string, filenames: st
 
     const items = await getItemList(path)
         .then(items => items.filter(({ name }) => filenames.includes(name)))
-    const promises = items.map(item => item instanceof FolderItem ?
-        fileClient.copyFolder(buildFolderUrl(path, item.name), buildFolderUrl(destination, name), {
-            withAcl: false,
-            withMeta: true,
-            createPath: true,
-            merge: SolidFileClient.MERGE.KEEP_SOURCE
-        })
-        : fileClient.copyFile(buildFileUrl(path, item.name), buildFileUrl(destination, item.name), {
-            withAcl: false,
-            withMeta: true,
-            createPath: true,
-            merge: SolidFileClient.MERGE.REPLACE
-        }))
-        .flat(1) as Response[]
+    const promises: Promise<(Response | Response[])>[] = []
+    for (const item of items) {
+        if (item instanceof FolderItem) {
+            promises.push(fileClient.copyFolder(buildFolderUrl(path, item.name), buildFolderUrl(destination, item.name), {
+                withAcl: false,
+                withMeta: true,
+                createPath: true,
+                merge: SolidFileClient.MERGE.KEEP_SOURCE
+            }))
+        } else {
+            promises.push(fileClient.copyFile(buildFileUrl(path, item.name), buildFileUrl(destination, item.name), {
+                withAcl: false,
+                withMeta: true,
+                createPath: true,
+                merge: SolidFileClient.MERGE.REPLACE
+            }))
+        }
+    }
     
-    return Promise.all(promises).catch(handleFetchError);
+    return Promise.all(promises)
+        .then(responses => responses.flat(1))
+        .catch(handleFetchError);
 };
 
 /**
