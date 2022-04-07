@@ -2,11 +2,11 @@ import JSZip from 'jszip';
 import { FileItem, FolderItem, Item } from './Item';
 import ApiCache from './ApiCache';
 import config from './../config';
-import * as solidAuth from 'solid-auth-client';
 import SolidFileClient from 'solid-file-client';
 import { guessContentType } from './contentTypes';
+import { fetch } from '@inrupt/solid-client-authn-browser';
 
-const fileClient = new SolidFileClient(solidAuth, { enableLogging: true });
+const fileClient = new SolidFileClient({ fetch }, { enableLogging: true });
 const cache = new ApiCache();
 
 /**
@@ -268,7 +268,7 @@ export const getAsZip = (path: string, itemList: Item[]): Promise<JSZip> => {
 const addItemsToZip = (zip: JSZip, path: string, itemList: Item[]): Promise<void[]> => {
     const promises = itemList.map(async item => {
         if (item instanceof FolderItem) {
-            const zipFolder = zip.folder(item.name);
+            const zipFolder = zip.folder(item.name) as JSZip;
             const folderPath = `${path}/${item.name}`;
             const folderItems = await getItemList(folderPath);
             await addItemsToZip(zipFolder, folderPath, folderItems);

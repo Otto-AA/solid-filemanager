@@ -17,6 +17,7 @@
   },
   "homepage": ".",
   "dependencies": {
+    "@inrupt/solid-client-authn-browser": "^1.11.7",
     "@material-ui/core": "^3.9.4",
     "@material-ui/icons": "^3.0.2",
     "@types/classnames": "^2.2.10",
@@ -44,8 +45,7 @@
     "react-scripts": "^2.1.8",
     "redux": "^4.0.5",
     "redux-thunk": "~2.3.0",
-    "solid-auth-client": "^2.4.1",
-    "solid-file-client": "^1.0.5",
+    "solid-file-client": "^2.1.3",
     "typeface-roboto": "0.0.54",
     "typescript": "^3.8.3"
   },

@@ -16,6 +16,7 @@ import { DIALOGS } from '../../../Actions/actionTypes';
 class FormDialog extends Component<ChooseLocationProps> {
     state = {
         location: '',
+        oidcIssuer: '',
     };
 
     componentWillReceiveProps(props: ChooseLocationProps) {
@@ -23,6 +24,7 @@ class FormDialog extends Component<ChooseLocationProps> {
         const params = new URLSearchParams(document.location.search.substr(1));
         const encodedUrl = params.get('url');
 
+        this.setState({ oidcIssuer: 'https://solidcommunity.net/'})
         if (encodedUrl !== null) {
             const location = decodeURI(encodedUrl);
             this.setState({ location });
@@ -34,26 +36,25 @@ class FormDialog extends Component<ChooseLocationProps> {
     }
 
     handleChange(event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
-        const targetForm = event.currentTarget.form;
-        if (targetForm) {
-            const input = targetForm.querySelector('input');
-            if (input) {
-                const location = input.value;
-                this.setState({ location });
-                return;
-            }
-        }
-        console.log("Couldn't find location input");
+        this.setState({ location: event.target.value })
     }
 
+    handleIDProviderChange(event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
+        this.setState({ oidcIssuer: event.target.value })
+    }
+    
     handleSubmit(event: DialogButtonClickEvent) {
         this.props.handleSubmit(event, { location: this.state.location });
     }
 
+    handleLogin(event: DialogButtonClickEvent) {
+        this.props.handleLogin(event, { oidcIssuer: this.state.oidcIssuer })
+    }
+
     render() {
-        let { location } = this.state;
+        let { location, oidcIssuer } = this.state;
         location = location ? location : '';
-        const { handleClose, handleLogin, handleLogout, open, isLoggedIn, webId } = this.props;
+        const { handleClose, handleLogout, open, isLoggedIn, webId } = this.props;
 
         return (
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-choose-location" fullWidth={true} maxWidth={'sm'}>
@@ -62,24 +63,33 @@ class FormDialog extends Component<ChooseLocationProps> {
                     <DialogContent>
                         <Typography variant="body1" gutterBottom>
                             {!isLoggedIn ?
-                                "If you want to access private resources, please login with the button below."
+                                "If you want to access private resources, please choose your ID provider and login with the button below."
                                 : "Logged in as " + webId + "."
                             }
                         </Typography>
+                        {
+                            !isLoggedIn && <TextField autoFocus fullWidth
+                                margin="normal"
+                                label="Solid ID provider"
+                                variant="outlined"
+                                onChange={this.handleIDProviderChange.bind(this)}
+                                value={oidcIssuer}
+                                required />
+                        }
                         {!isLoggedIn ?
-                            <Button variant="outlined" color="primary" onClick={handleLogin}>Login</Button>
+                            <Button variant="outlined" color="primary" onClick={this.handleLogin.bind(this)}>Login</Button>
                             : <Button variant="outlined" onClick={handleLogout}>Logout</Button>
                         }
 
                         <Typography variant="body1">
                             Please enter the directory you want to open below.
                     </Typography>
-                        <TextField autoFocus fullWidth
-                            margin="normal"
-                            label="Storage Location"
-                            variant="outlined"
-                            onChange={this.handleChange.bind(this)}
-                            value={location} />
+                    <TextField autoFocus fullWidth
+                        margin="normal"
+                        label="Storage Location"
+                        variant="outlined"
+                        onChange={this.handleChange.bind(this)}
+                        value={location} />
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleClose} color="primary" type="button">
@@ -100,7 +110,7 @@ interface StateProps extends DialogStateProps {
     isLoggedIn: boolean;
 }
 interface DispatchProps extends DialogDispatchProps {
-    handleLogin(event: DialogButtonClickEvent): void;
+    handleLogin(event: DialogButtonClickEvent, { oidcIssuer }: { oidcIssuer: string }): void;
     handleLogout(event: DialogButtonClickEvent): void;
     handleSubmit(event: DialogButtonClickEvent, { location }: { location: string }): void;
 }
@@ -120,9 +130,9 @@ const mapDispatchToProps = (dispatch: MyDispatch): DispatchProps => {
         handleClose: () => {
             dispatch(closeDialog(DIALOGS.CHOOSE_LOCATION));
         },
-        handleLogin: event => {
+        handleLogin: (event, { oidcIssuer }) => {
             event.preventDefault();
-            dispatch(solidLogin());
+            dispatch(solidLogin(oidcIssuer));
         },
         handleLogout: event => {
             event.preventDefault();
