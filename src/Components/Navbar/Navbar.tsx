@@ -1,5 +1,4 @@
 import React, { ChangeEvent } from 'react';
-import PropTypes from 'prop-types';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -44,13 +43,13 @@ const styles = (theme: Theme) => createStyles({
     width: '100%',
     display: 'none',
     [theme.breakpoints.up('sm')]: {
-      marginLeft: theme.spacing.unit,
+      marginLeft: theme.spacing(),
       width: 'auto',
       display: 'block'
     },
   },
   searchIcon: {
-    width: theme.spacing.unit * 9,
+    width: theme.spacing() * 9,
     height: '100%',
     position: 'absolute',
     pointerEvents: 'none',
@@ -63,10 +62,10 @@ const styles = (theme: Theme) => createStyles({
     width: '100%',
   },
   inputInput: {
-    paddingTop: theme.spacing.unit,
-    paddingRight: theme.spacing.unit,
-    paddingBottom: theme.spacing.unit,
-    paddingLeft: theme.spacing.unit * 10,
+    paddingTop: theme.spacing(),
+    paddingRight: theme.spacing(),
+    paddingBottom: theme.spacing(),
+    paddingLeft: theme.spacing() * 10,
     transition: theme.transitions.create('width'),
     width: '100%',
     [theme.breakpoints.up('sm')]: {

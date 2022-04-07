@@ -6,7 +6,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import { connect } from 'react-redux';
-import { createNewFolder, closeDialog, MyDispatch, setErrorMessage } from '../../../Actions/Actions';
+import { createNewFolder, closeDialog, MyDispatch } from '../../../Actions/Actions';
 import { DialogStateProps, DialogDispatchProps, DialogButtonClickEvent } from '../dialogTypes';
 import { AppState } from '../../../Reducers/reducer';
 import { DIALOGS } from '../../../Actions/actionTypes';
@@ -23,7 +23,7 @@ class FormDialog extends Component<CreateFolderProps> {
     }
 
     render() {
-        const { handleClose, handleSubmit, open } = this.props;
+        const { handleClose, open } = this.props;
 
         return (
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-create-folder" fullWidth={true} maxWidth={'sm'}>

@@ -1,6 +1,6 @@
 let host: string | null = null;
 
-export default {
+const config = {
     getHost() {
         return host;
     },
@@ -9,4 +9,7 @@ export default {
         while (host.endsWith('/'))
             host = host.slice(0, -1);
     }
-};
+}
+
+export default config;
+

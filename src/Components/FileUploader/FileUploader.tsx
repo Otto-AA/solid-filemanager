@@ -1,5 +1,4 @@
 import React, { Component, createRef } from 'react';
-import PropTypes from 'prop-types';
 import Button from '@material-ui/core/Button';
 import UploadFileList from './UploadFileList';
 
@@ -34,7 +33,7 @@ class FileUploader extends Component<FileUploadProps> {
                     </Button>*/}
                 </label>
 
-                <Button style={styles.inputreset} component="span" type="reset" onClick={this.handleReset.bind(this)}>
+                <Button style={styles.inputreset} type="reset" onClick={this.handleReset.bind(this)}>
                     Clear
                 </Button>
 

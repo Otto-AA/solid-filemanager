@@ -19,7 +19,7 @@ class FormDialog extends Component<MediaProps> {
 
         const fileName = file ? file.name : undefined;
         const url = file ? file.url : undefined;
-        const provider = file ? (file.isVideo() ? 'html5' : 'audio') : '';
+        // TODO: const provider = file ? (file.isVideo() ? 'html5' : 'audio') : '';
         const type = file ? (file.isVideo() ? 'video' : 'audio') : undefined;
 
         return (
@@ -30,7 +30,7 @@ class FormDialog extends Component<MediaProps> {
                         file ?
                             (
                                 <div>
-                                    <p>Playing {file.name}</p>
+                                    <p>Playing {fileName}</p>
                                     <Plyr type={type} /*TODO: provider={provider}*/ url={url} iconUrl="./vendor/plyr/plyr.svg" />
                                 </div>
                             )

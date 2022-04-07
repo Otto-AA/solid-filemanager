@@ -6,7 +6,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { connect } from 'react-redux';
-import { resetFileUploader, uploadFiles, setFileUploadList, MyDispatch, resetFileUploadList, setErrorMessage } from '../../../Actions/Actions';
+import { resetFileUploader, uploadFiles, setFileUploadList, MyDispatch, resetFileUploadList } from '../../../Actions/Actions';
 import FileUploader from '../../FileUploader/FileUploader';
 import { DialogStateProps, DialogDispatchProps } from '../dialogTypes';
 import { AppState } from '../../../Reducers/reducer';

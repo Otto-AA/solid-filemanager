@@ -1,12 +1,11 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { withStyles, createStyles, Theme, WithStyles } from '@material-ui/core/styles';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
 
 const styles = (theme: Theme) => createStyles({
   progress: {
-    margin: theme.spacing.unit * 10,
+    margin: theme.spacing() * 10,
   },
 });
 

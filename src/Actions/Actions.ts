@@ -4,7 +4,6 @@ import { Action, SET_LOGGED_IN, SET_LOGGED_OUT, SET_HOST, SET_ITEMS, SET_WEB_ID,
 import { AppState } from '../Reducers/reducer';
 import { ThunkAction, ThunkDispatch } from 'redux-thunk';
 import { guessContentType } from '../Api/contentTypes';
-import { version } from '../../package.json';
 import { handleIncomingRedirect, login, logout } from '@inrupt/solid-client-authn-browser';
 
 
@@ -12,7 +11,7 @@ export type MyThunk = ThunkAction<void, AppState, null, Action<any>>;
 export type MyDispatch = ThunkDispatch<AppState, null, Action<any>>;
 
 export const initApp = (): MyThunk => (dispatch, getState) => {
-    console.log(`Starting Solid-Filemanager v${version}`);
+    console.log(`Starting Solid-Filemanager v${process.env.REACT_APP_VERSION}`);
     dispatch(updateLoginStatus());
     dispatch(openDialog(DIALOGS.CHOOSE_LOCATION));
 };

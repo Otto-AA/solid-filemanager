@@ -240,9 +240,9 @@ export const uploadFiles = async (path: string, fileList: FileList): Promise<Res
     if (!fileList.length) {
         return Promise.reject('No files to upload');
     }
-    const promises = Array.from(fileList).map(file => {
-      const contentType = file.type || guessContentType(file.name, file)
-      return updateFile(path, file.name, file, file.type)
+    const promises = Array.from(fileList).map(async file => {
+      const contentType = file.type || (await guessContentType(file.name, file))
+      return updateFile(path, file.name, file, contentType)
     });
     return Promise.all(promises).catch(handleFetchError);
 };

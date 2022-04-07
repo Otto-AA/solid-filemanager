@@ -1,5 +1,3 @@
-import { Item } from "../Api/Item";
-
 export interface Action<V> {
     type: string;
     value: V;

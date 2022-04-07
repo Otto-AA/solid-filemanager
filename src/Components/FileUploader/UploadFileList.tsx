@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -9,7 +8,6 @@ import { getHumanFileSize } from '../../Api/Item';
 
 function UploadFileList(props: UploadFileListProps) {
     const { files } = props;
-    files[0];
     const list = Array.from(files).map((f, i) =>
         <ListItem dense key={i}>
             <ListItemIcon>

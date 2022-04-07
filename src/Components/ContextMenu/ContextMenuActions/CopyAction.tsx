@@ -6,7 +6,7 @@ import Typography from '@material-ui/core/Typography';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import { openDialog, MyDispatch } from '../../../Actions/Actions';
 import { AppState } from '../../../Reducers/reducer';
-import { DIALOGS, Action } from '../../../Actions/actionTypes';
+import { DIALOGS } from '../../../Actions/actionTypes';
 
 function CopyAction(props: CopyActionProps) {
     const { handleClick } = props;
