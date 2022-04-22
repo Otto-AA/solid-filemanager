@@ -2,6 +2,16 @@
   "name": "solid-filemanager",
   "version": "1.2.0",
   "private": false,
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "test:e2e": "npm run start-wait && cypress run",
+    "start-wait": "npm run start-wait:frontend && npm run start-wait:css",
+    "start-wait:frontend": "npm run start & wait-on http://localhost:3000",
+    "start-wait:css": "community-solid-server -p 8080 & wait-on http://localhost:8080"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/otto-aa/solid-filemanager.git"
@@ -48,12 +58,6 @@
     "typeface-roboto": "0.0.54",
     "typescript": "^3.8.3"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
   "eslintConfig": {
     "extends": "react-app"
   },
@@ -62,5 +66,11 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "devDependencies": {
+    "@solid/community-server": "^4.0.0",
+    "cypress": "^9.5.4",
+    "uuid": "^8.3.2",
+    "wait-on": "^6.0.1"
+  }
 }

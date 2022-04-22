@@ -1,0 +1,5 @@
+{
+    "baseUrl": "http://localhost:3000",
+    "//": "used to allow cross origin login",
+    "chromeWebSecurity": false
+}

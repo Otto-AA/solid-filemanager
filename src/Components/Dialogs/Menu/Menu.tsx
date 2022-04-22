@@ -74,6 +74,7 @@ class FormDialog extends Component<ChooseLocationProps> {
                                 variant="outlined"
                                 onChange={this.handleIDProviderChange.bind(this)}
                                 value={oidcIssuer}
+                                inputProps={{ 'data-cy': 'idp' }}
                                 required />
                         }
                         {!isLoggedIn ?
@@ -89,6 +90,7 @@ class FormDialog extends Component<ChooseLocationProps> {
                         label="Storage Location"
                         variant="outlined"
                         onChange={this.handleChange.bind(this)}
+                        inputProps={{ 'data-cy': 'storageLocation' }}
                         value={location} />
                     </DialogContent>
                     <DialogActions>
