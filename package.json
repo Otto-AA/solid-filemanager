@@ -68,6 +68,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
+    "@inrupt/solid-client-authn-core": "^1.11.7",
     "@solid/community-server": "^4.0.0",
     "cypress": "^9.5.4",
     "uuid": "^8.3.2",

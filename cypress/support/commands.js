@@ -24,22 +24,53 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
+const { createDpopHeader, generateDpopKeyPair, buildAuthenticatedFetch } = require('@inrupt/solid-client-authn-core')
 const uuid = require('uuid')
+const cssBaseUrl = 'http://localhost:8080'
+
+
+/**
+ * pretends to be a normal fetch
+ * this can be passed to buildAuthenticatedFetch
+ * and it will resolve with { options }
+ * 
+ * this is used to get the valid authentication headers from buildAuthenticatedFetch
+ */
+const cyFetchWrapper = (url, options = {}) => {
+    options.method ??= 'GET'
+    options.url = url
+    options.headers = Object.fromEntries(options.headers.entries())
+    // mock response
+    return {
+        ok: true, // buildAUthenticatedFetch relies on response.ok to be true. Else it checks for unauthorized errors
+        options,
+    }
+}
+
+/**
+ * uses the authenticatio headers from cyFetchWrapper
+ * and makes a cy.request
+ */
+const cyUnwrapFetch = wrappedFetch => {
+    return async (...args) => {
+        const res = await wrappedFetch(...args)
+        return cy.request(res.options)
+    }
+}
 
 Cypress.Commands.add('createRandomAccount', () => {
-    const baseUrl = 'http://localhost:8080'
     const username = 'test-'  + uuid.v4()
     const password = '12345'
     const email = `${username}@example.org`
     const config = {
-        idp: `${baseUrl}/`,
-        podUrl: `${baseUrl}/${username}`,
-        webId: `${baseUrl}/${username}/profile/card#me`,
+        idp: `${cssBaseUrl}/`,
+        podUrl: `${cssBaseUrl}/${username}`,
+        webId: `${cssBaseUrl}/${username}/profile/card#me`,
         username,
         password,
         email,
     }
-    const registerEndpoint = `${baseUrl}/idp/register/`
+    const registerEndpoint = `${cssBaseUrl}/idp/register/`
     cy.request('POST', registerEndpoint, {
         createWebId: 'on',
         webId: '',
@@ -91,8 +122,75 @@ Cypress.Commands.add('login', user => {
     cy.contains('profile')
 })
 
+Cypress.Commands.add('authenticatedFetch', (user, ...args) => {
+    return cy.getAuthenticatedFetch(user)
+        .then(fetch => fetch(...args))
+})
+
+Cypress.Commands.add('getAuthenticatedFetch', user => {
+    // see https://github.com/CommunitySolidServer/CommunitySolidServer/blob/main/documentation/client-credentials.md
+    const credentialsEndpoint = `${cssBaseUrl}/idp/credentials/`
+    return cy.request('POST', credentialsEndpoint, {
+        email: user.email,
+        password: user.password,
+        name: 'cypress-login-token',
+    }).then(async response => {
+        const { id, secret } = response.body
+        const dpopKey = await generateDpopKeyPair()
+        const authString = `${encodeURIComponent(id)}:${encodeURIComponent(secret)}`
+        const tokenEndpoint = `${cssBaseUrl}/.oidc/token`
+        cy.request({
+            method: 'POST',
+            url: tokenEndpoint,
+            headers: {
+                authorization: `Basic ${Buffer.from(authString).toString('base64')}`,
+                'content-type': 'application/x-www-form-urlencoded',
+                dpop: await createDpopHeader(tokenEndpoint, 'POST', dpopKey),
+            },
+            body: 'grant_type=client_credentials&scope=webid',
+        }).then(async response => {
+            const {access_token: accessToken } = response.body
+            const authFetchWrapper = await buildAuthenticatedFetch(cyFetchWrapper, accessToken, { dpopKey })
+            const authFetch = cyUnwrapFetch(authFetchWrapper)
+            return cy.wrap(authFetch)
+        })
+    })
+
+})
+
 Cypress.Commands.add('inputFromLabel', label => {
     return cy.contains('label', label)
         .invoke('attr', 'for')
         .then(id => cy.get('#' + id))
+})
+
+/** recursively creates folder and leaves a .test.keep file inside
+ * requires permissions to do so */
+Cypress.Commands.add('givenFolder', (user, url) => {
+    if (!url.endsWith('/'))
+        url += '/'
+    
+    // putting file which recursively creates parent containers
+    const tempFileUrl = url + '.test.keep'
+    cy.authenticatedFetch(user, url, {
+        method: 'PUT',
+        headers: {
+            'content-type': 'text/plain'
+        }
+    })
+    /* somehow this also deletes the created folders
+    cy.authenticatedFetch(user, url, {
+        method: 'DELETE',
+    })
+    */
+})
+
+Cypress.Commands.add('givenTextFile', (user, url, content) => {
+    cy.authenticatedFetch(user, url, {
+        method: 'PUT',
+        headers: {
+            'content-type': 'text/plain'
+        },
+        body: content
+    })
 })
