@@ -77,7 +77,7 @@ class FormDialog extends Component<OwnProps, OwnState> {
                         <Button onClick={handleClose} color="primary" type="button">
                             Cancel
                         </Button>
-                        <Button color="primary" onClick={(e) => handleSubmit({ host, path })} type="submit">
+                        <Button color="primary" onClick={(e) => { e.preventDefault(); handleSubmit({ host, path }) }} type="submit">
                             {actionName}
                         </Button>
                     </DialogActions>

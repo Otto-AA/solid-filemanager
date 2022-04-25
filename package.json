@@ -8,9 +8,11 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "test:e2e": "npm run start-wait && cypress run",
+    "precss": "node delete_css_storage.js",
+    "css": "community-solid-server -p 8080 -c @css:config/file-no-setup.json -f ./community-solid-server",
     "start-wait": "npm run start-wait:frontend && npm run start-wait:css",
     "start-wait:frontend": "npm run start & wait-on http://localhost:3000",
-    "start-wait:css": "community-solid-server -p 8080 & wait-on http://localhost:8080"
+    "start-wait:css": "npm run css & wait-on http://localhost:8080"
   },
   "repository": {
     "type": "git",
@@ -70,7 +72,7 @@
   "devDependencies": {
     "@inrupt/solid-client-authn-core": "^1.11.7",
     "@solid/community-server": "^4.0.0",
-    "cypress": "^9.5.4",
+    "cypress": "^9.6.0",
     "uuid": "^8.3.2",
     "wait-on": "^6.0.1"
   }

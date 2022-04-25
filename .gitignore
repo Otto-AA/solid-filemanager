@@ -13,6 +13,9 @@
 /cypress/videos
 /cypress/screenshots
 
+# community-solid-server
+/community-solid-server
+
 # misc
 .DS_Store
 .env.local
