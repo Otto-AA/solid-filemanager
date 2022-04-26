@@ -22,6 +22,7 @@ class FormDialog extends Component<OwnProps, OwnState> {
         this.state = {
             items: [],
             isLoading: true,
+            wasPreviouslyOpen: false,
         };
     }
 
@@ -30,7 +31,13 @@ class FormDialog extends Component<OwnProps, OwnState> {
             || prevProps.initialPath.join('') !== this.props.initialPath.join('')) {
             this.host = this.props.initialHost;
             this.path = this.props.initialPath;
-            this.updateItems();
+        }
+        if (this.props.open && !this.state.wasPreviouslyOpen) {
+            this.setState({ wasPreviouslyOpen: true })
+            this.updateItems()
+        }
+        if (!this.props.open && this.state.wasPreviouslyOpen) {
+            this.setState({ wasPreviouslyOpen: false })
         }
     }
 
@@ -99,6 +106,7 @@ interface OwnProps {
 interface OwnState {
     items: Item[];
     isLoading: boolean;
+    wasPreviouslyOpen: boolean;
 }
 
 export default FormDialog;
