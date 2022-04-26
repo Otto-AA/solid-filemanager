@@ -31,7 +31,7 @@ describe('file operations', () => {
         cy.contains(fileContent)
     })
 
-    it.only('can copy a text file to a different folder', function () {
+    it('can copy a text file to a different folder', function () {
         const fileName = 'file.txt'
         const fileUrl = `${this.user.podUrl}/${fileName}`
         const fileContent = 'some cool content'
