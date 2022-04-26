@@ -48,14 +48,16 @@ describe('file operations', () => {
         cy.intercept({
             method: 'GET',
             url: `${this.user.podUrl}/${encodeURIComponent(folderName)}`
-        }).as('getFolder')
+        }).as('getTargetFolder')
 
+        // open copy menu
         cy.contains(fileName).rightclick()
         cy.contains('Copy').click()
 
+        // select target folder and copy
         // TODO: fix %20 in application
         cy.contains('some%20folder').click()
-        cy.wait('@getFolder').its('response.body').should('not.include', fileName).then(cy.log)
+        cy.wait('@getTargetFolder').its('response.body').should('not.include', fileName).then(cy.log)
         cy.get('button').contains('Copy').click()
         cy.wait('@putNewFile').then(({ request, response }) => {
             expect(request.body).to.equal(fileContent)
@@ -64,11 +66,14 @@ describe('file operations', () => {
             })
             expect(response).to.have.property('statusCode', 201)
         })
-        cy.screenshot()
+
+        // open target folder in file explorer
         cy.contains(folderName).dblclick()
-        cy.wait('@getFolder').its('response.body').should('include', fileName).then(cy.log)
-        // TODO: fix double url encoding
+        cy.wait('@getTargetFolder').its('response.body').should('include', fileName).then(cy.log)
         cy.location('search').should('include', encodeURIComponent(encodeURIComponent(folderName)))
+
+        // open copied file
+        // TODO: fix double url encoding
         cy.contains(fileName).dblclick()
         cy.contains(fileContent)
     })
