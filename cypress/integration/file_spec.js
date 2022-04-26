@@ -55,6 +55,7 @@ describe('file operations', () => {
 
         // TODO: fix %20 in application
         cy.contains('some%20folder').click()
+        cy.wait('@getFolder').its('response.body').should('not.include', fileName).then(cy.log)
         cy.get('button').contains('Copy').click()
         cy.wait('@putNewFile').then(({ request, response }) => {
             expect(request.body).to.equal(fileContent)
@@ -63,11 +64,8 @@ describe('file operations', () => {
             })
             expect(response).to.have.property('statusCode', 201)
         })
-
+        cy.screenshot()
         cy.contains(folderName).dblclick()
-        // TODO: it should only fetch the folder once, but somehow does it twice.
-        //       first without the new file, then with the new file
-        cy.wait('@getFolder').its('response.body').then(cy.log)
         cy.wait('@getFolder').its('response.body').should('include', fileName).then(cy.log)
         // TODO: fix double url encoding
         cy.location('search').should('include', encodeURIComponent(encodeURIComponent(folderName)))

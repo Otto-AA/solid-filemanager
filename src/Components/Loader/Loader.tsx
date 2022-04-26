@@ -11,7 +11,7 @@ const styles = (theme: Theme) => createStyles({
 
 function Loader(props: LoaderProps) {
     return (
-        <Grid container justify="center">
+        <Grid container justifyContent="center">
             <CircularProgress className={props.classes.progress} color="secondary" />
         </Grid>
     );
