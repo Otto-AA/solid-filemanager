@@ -46,6 +46,10 @@ namespace SFC {
 
     deleteFolderContents(url: string): Promise<Response>;
     deleteFolderRecursively(url: string): Promise<Response>;
+
+    getAsZip(url: string, options?: ZipOptions): Promise<JSZip?>;
+    uploadExtractedZipArchive(zip : JSZip, destination: string, curFolder = '', responses = [], options?: UnzipOptions): Promise<Response?>;
+    extractZipArchive(file: string, destination:string, options?: unzipOptions)
   }
 
   interface SolidFileClientOptions {
@@ -82,6 +86,23 @@ namespace SFC {
 
   interface ReadFolderOptions {
     links?: LINKS;
+  }
+
+  interface ZipOptions {
+    links?: LINKS;
+    withAcl?: boolean;
+    withMeta?: boolean;
+  }
+
+  interface UnzipOptions {
+    links?: LINKS;
+    withAcl?: boolean;
+    withMeta?: boolean;
+    merge: 'replace', // or 'keep_target'
+    createPath: true,
+    aclMode: 'Control',
+    aclAuth: 'may',
+    aclDefault: 'must' // needed to allow acces to folder content .meta ...
   }
 
   interface SolidApiOptions {
