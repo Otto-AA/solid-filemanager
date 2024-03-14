@@ -145,7 +145,7 @@ export const createFolder = (path: string, folderName: string): Promise<Response
 /**
  * Fetch API to remove one item
  */
-export async function removeItem(path: string, itemName: string): Promise<Response> { // TODO: use fileClient
+export async function removeItem(path: string, itemName: string): Promise<Response> {
     const url = buildFileUrl(path, itemName);
 
     return fileClient.delete(url)
@@ -260,18 +260,25 @@ export const updateFile = (path: string, fileName: string, content: Blob|string,
 /**
  * Wrap API response for zipping multiple items
  */
-export const getAsZip = (path: string, itemList: Item[]): Promise<JSZip> => {
+
+export const getAsZip = (path: string, itemList: Item[]): Promise<JSZip> => { // , options: ZipOptions)
+    path = fixPath(path);
+    const url = buildFolderUrl(path + '/' + itemList[0].name);
+    return fileClient.getAsZip(url) // , options
+}
+
+/* export const getAsZip = (path: string, itemList: Item[]): Promise<JSZip> => {
     path = fixPath(path);
     const zip = new JSZip();
 
     return addItemsToZip(zip, path, itemList)
         .then(() => zip);
-}
+} */
 
 /**
  * Add items to a zip object recursively
  */
-const addItemsToZip = (zip: JSZip, path: string, itemList: Item[]): Promise<void[]> => {
+/* const addItemsToZip = (zip: JSZip, path: string, itemList: Item[]): Promise<void[]> => {
     const promises = itemList.map(async item => {
         if (item instanceof FolderItem) {
             const zipFolder = zip.folder(item.name) as JSZip;
@@ -286,22 +293,28 @@ const addItemsToZip = (zip: JSZip, path: string, itemList: Item[]): Promise<void
     });
 
     return Promise.all(promises);
-}
+} */
 
 /**
  * Wrap API response for extracting a zip archive
  */
-export const extractZipArchive = async (path: string, destination: string = path, fileName: string) => {
-    const blob = await getFileBlob(path, fileName);
+export const extractZipArchive = async (path: string, destination: string, fileName: string) => {
+    path = fixPath(path)
+    const zipUrl = buildFileUrl(path, fileName)
+    destination = fixPath(destination)
+    const destinationUrl = buildFolderUrl(destination)
+    return fileClient.extractZipArchive(zipUrl, destinationUrl)
+
+    /* const blob = await getFileBlob(path, fileName);
     const zip = await JSZip.loadAsync(blob);
 
-    return uploadExtractedZipArchive(zip, destination);
+    return uploadExtractedZipArchive(zip, destination); */
 };
 
 /**
  * Recursively upload all files and folders from an extracted zip archive
  */
-async function uploadExtractedZipArchive(zip: JSZip, destination: string, curFolder = ''): Promise<void[]> {
+/* async function uploadExtractedZipArchive(zip: JSZip, destination: string, curFolder = ''): Promise<void[]> {
     const promises = getItemsInZipFolder(zip, curFolder)
         .map(async item => {
             const relativePath = item.name;
@@ -348,7 +361,7 @@ function getParentPathFromPath(path: string): string {
     path = path.endsWith('/') ? path.slice(0, -1) : path;
     path = path.substr(0, path.lastIndexOf('/'));
     return path;
-}
+} */
 
 /**
  * Build up an url from a path relative to the storage location and a folder name

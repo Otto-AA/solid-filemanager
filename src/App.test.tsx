@@ -5,7 +5,9 @@ import thunk from 'redux-thunk';
 import { Provider } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux'
 import reducer from './Reducers/reducer'
+import util from 'util'
 
+const textEncoder = new util.TextEncoder();
 const store = createStore(reducer, applyMiddleware(thunk));
 
 it('renders without crashing', () => {
