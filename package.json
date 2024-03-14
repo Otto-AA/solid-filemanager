@@ -5,6 +5,8 @@
   "scripts": {
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
+    "eject": "react-scripts eject",
+    "deploy": "npm run build && gh-pages -d build",
     "test": "node scripts/test.js",
     "test:e2e": "npm run start-wait && cypress run",
     "precss": "node delete_css_storage.js",
