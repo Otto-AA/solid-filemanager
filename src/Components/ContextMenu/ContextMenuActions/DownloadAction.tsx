@@ -18,7 +18,7 @@ function DownloadAction(props: DownloadActionProps) {
             <Typography variant="inherit">
                 {(selectedItems.length === 1 && selectedItems[0] instanceof FileItem) ? 
                     'Download'
-                    : 'Download Zip'
+                    : 'Download withAcl'
                 }
             </Typography>
         </MenuItem>        

@@ -17,7 +17,7 @@ function ZipAction(props: ZipActionProps) {
                 <ArchiveIcon />
             </ListItemIcon>
             <Typography variant="inherit">
-                Zip here
+                Zip here withAcl
             </Typography>
         </MenuItem>        
     );

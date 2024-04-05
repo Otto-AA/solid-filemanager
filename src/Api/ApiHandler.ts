@@ -210,15 +210,15 @@ export const copyItems = async (path: string, destination: string, filenames: st
     for (const item of items) {
         if (item instanceof FolderItem) {
             promises.push(fileClient.copyFolder(buildFolderUrl(path, item.name), buildFolderUrl(destination, item.name), {
-                withAcl: false,
-                withMeta: true,
+                withAcl: true,
+                withMeta: false, // CSS issue - PATCH only
                 createPath: true,
                 merge: SolidFileClient.MERGE.KEEP_SOURCE
             }))
         } else {
             promises.push(fileClient.copyFile(buildFileUrl(path, item.name), buildFileUrl(destination, item.name), {
-                withAcl: false,
-                withMeta: true,
+                withAcl: true,
+                withMeta: false, // CSS issue - PATCH only
                 createPath: true,
                 merge: SolidFileClient.MERGE.REPLACE
             }))
