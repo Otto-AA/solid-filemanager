@@ -17,7 +17,7 @@ function ExtractAction(props: ExtractActionProps) {
                 <UnarchiveIcon />
             </ListItemIcon>
             <Typography variant="inherit">
-                Extract here
+                Extract here with ACL
             </Typography>
         </MenuItem>        
     );

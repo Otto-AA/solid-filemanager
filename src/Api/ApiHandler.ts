@@ -264,7 +264,7 @@ export const updateFile = (path: string, fileName: string, content: Blob|string,
 export const getAsZip = (path: string, itemList: Item[]): Promise<JSZip> => { // , options: ZipOptions)
     path = fixPath(path);
     const url = buildFolderUrl(path + '/' + itemList[0].name);
-    return fileClient.getAsZip(url, { withMeta: false }) // , options
+    return fileClient.getAsZip(url, { withMeta: false }) // CSS issue - only PATCH
 }
 
 /* export const getAsZip = (path: string, itemList: Item[]): Promise<JSZip> => {
@@ -303,7 +303,7 @@ export const extractZipArchive = async (path: string, destination: string, fileN
     const zipUrl = buildFileUrl(path, fileName)
     destination = fixPath(destination)
     const destinationUrl = buildFolderUrl(destination)
-    return fileClient.extractZipArchive(zipUrl, destinationUrl, { withMeta: false })
+    return fileClient.extractZipArchive(zipUrl, destinationUrl, { withMeta: false }) // CSS issue - only PATCH
 
     /* const blob = await getFileBlob(path, fileName);
     const zip = await JSZip.loadAsync(blob);
