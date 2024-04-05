@@ -19,7 +19,7 @@ class FormDialog extends Component<ChooseLocationProps> {
         oidcIssuer: '',
     };
 
-    componentWillReceiveProps(props: ChooseLocationProps) {
+    UNSAFE_componentWillReceiveProps(props: ChooseLocationProps) {
         const { isLoggedIn, webId } = props;
         const params = new URLSearchParams(document.location.search.substr(1));
         const encodedUrl = params.get('url');
