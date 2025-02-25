@@ -30,7 +30,7 @@
   "homepage": ".",
   "dependencies": {
     "@babel/core": "^7.16.0",
-    "@inrupt/solid-client-authn-browser": "^1.11.7",
+    "@inrupt/solid-client-authn-browser": "^2.3.0",
     "@material-ui/core": "^4.12.4",
     "@material-ui/icons": "^4.11.3",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
@@ -74,6 +74,7 @@
     "jszip": "^3.4.0",
     "mime": "^2.4.4",
     "mini-css-extract-plugin": "^2.4.5",
+    "oidc-provider": "^7.14.3",
     "plyr": "^3.5.10",
     "postcss": "^8.4.4",
     "postcss-flexbugs-fixes": "^5.0.2",
@@ -118,7 +119,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "@inrupt/solid-client-authn-core": "^1.11.7",
+    "@inrupt/solid-client-authn-core": "^2.3.0",
     "@solid/community-server": "^4.0.0",
     "cypress": "^9.7.0",
     "uuid": "^8.3.2",
@@ -135,7 +136,9 @@
     "setupFiles": [
       "react-app-polyfill/jsdom"
     ],
-    "setupFilesAfterEnv": ["<rootDir>/setup.jest.js"],
+    "setupFilesAfterEnv": [
+      "<rootDir>/setup.jest.js"
+    ],
     "testMatch": [
       "<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}",
       "<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}"
