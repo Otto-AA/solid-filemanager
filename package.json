@@ -3,6 +3,8 @@
   "version": "1.2.1",
   "private": false,
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -26,7 +28,7 @@
   "bugs": {
     "url": "https://github.com/otto-aa/solid-filemanager/issues"
   },
-  "homepage": ".",
+  "homepage": "https://otto-aa.github.io/solid-filemanager/",
   "dependencies": {
     "@inrupt/solid-client-authn-browser": "^1.11.7",
     "@material-ui/core": "^4.12.4",
