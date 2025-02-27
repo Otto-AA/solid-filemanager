@@ -7,6 +7,7 @@ import { items } from './itemsReducer';
 import { loading } from './loadingReducer';
 import { path } from './pathReducer';
 import { upload } from './uploadReducer';
+import { settings } from './settingsReducer';
 
 const rootReducer = combineReducers({
     account,
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
     items,
     loading,
     path,
+    settings,
     upload,
 });
 

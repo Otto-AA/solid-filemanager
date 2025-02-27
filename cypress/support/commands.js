@@ -185,11 +185,11 @@ Cypress.Commands.add('givenFolder', (user, url) => {
     */
 })
 
-Cypress.Commands.add('givenTextFile', (user, url, content) => {
+Cypress.Commands.add('givenTextFile', (user, url, content, contentType = 'text/plain') => {
     cy.authenticatedFetch(user, url, {
         method: 'PUT',
         headers: {
-            'content-type': 'text/plain'
+            'content-type': contentType,
         },
         body: content
     })

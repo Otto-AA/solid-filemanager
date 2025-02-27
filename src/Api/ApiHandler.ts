@@ -262,10 +262,24 @@ export const updateFile = (path: string, fileName: string, content: Blob|string,
  */
 export const getAsZip = (path: string, itemList: Item[]): Promise<JSZip> => {
     path = fixPath(path);
-    const zip = new JSZip();
 
-    return addItemsToZip(zip, path, itemList)
-        .then(() => zip);
+    if (config.withAcl() || config.withMeta()) {
+        // SFC only supports single url
+        if (itemList.length !== 1) {
+            throw new Error(`Please select exactly one item when zipping with ACL/Meta enabled.`)
+        }
+        const item = itemList[0];
+        const url = (item instanceof FolderItem) ? buildFolderUrl(path, item.name) : buildFileUrl(path, item._name)
+        return fileClient.getAsZip(url, { 
+            withAcl: config.withAcl(),
+            withMeta: config.withMeta(),
+        })
+    } else {
+        const zip = new JSZip();
+
+        return addItemsToZip(zip, path, itemList)
+            .then(() => zip);
+    }
 }
 
 /**
@@ -292,14 +306,27 @@ const addItemsToZip = (zip: JSZip, path: string, itemList: Item[]): Promise<void
  * Wrap API response for extracting a zip archive
  */
 export const extractZipArchive = async (path: string, destination: string = path, fileName: string) => {
-    const blob = await getFileBlob(path, fileName);
-    const zip = await JSZip.loadAsync(blob);
+    if (config.withAcl() || config.withMeta()) {
+        const zipUrl = buildFileUrl(fixPath(path), fileName);
+        const destinationUrl = buildFolderUrl(fixPath(destination))
+        cache.remove(fixPath(destination))
+        console.log(config.withAcl())
+        const results = await fileClient.extractZipArchive(zipUrl, destinationUrl, {
+            withAcl: config.withAcl(),
+            withMeta: config.withMeta(),
+        })
+        if (results.err.length) throw handleFetchError(new Error(`Could not extract all files: ${JSON.stringify(results.err)}`)) 
+    } else {
+        const blob = await getFileBlob(path, fileName);
+        const zip = await JSZip.loadAsync(blob);
 
-    return uploadExtractedZipArchive(zip, destination);
+        await uploadExtractedZipArchive(zip, destination);
+    }
 };
 
 /**
  * Recursively upload all files and folders from an extracted zip archive
+ * Ignore .acl and .meta files (use SFC version instead, if this is desired)
  */
 async function uploadExtractedZipArchive(zip: JSZip, destination: string, curFolder = ''): Promise<void[]> {
     const promises = getItemsInZipFolder(zip, curFolder)
@@ -312,7 +339,7 @@ async function uploadExtractedZipArchive(zip: JSZip, destination: string, curFol
                 await createFolder(path, itemName);
                 await uploadExtractedZipArchive(zip, destination, relativePath);
             }
-            else {
+            else if (!item.name.endsWith('.acl') && !item.name.endsWith('.meta')) {
                 const blob = await item.async('blob');
                 const contentType = blob.type ? blob.type : await guessContentType(item.name, blob);
                 await updateFile(path, itemName, blob, contentType);

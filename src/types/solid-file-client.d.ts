@@ -46,10 +46,31 @@ namespace SFC {
 
     deleteFolderContents(url: string): Promise<Response>;
     deleteFolderRecursively(url: string): Promise<Response>;
+
+    getAsZip(url: string, options?: ZipOptions): Promise<JSZip>;
+    uploadExtractedZipArchive(zip : JSZip, destination: string, curFolder?: string, responses = [], options?: UnzipOptions): Promise<unknown>;
+    extractZipArchive(file: string, destination:string, options?: UnzipOptions): Promise<{ err: unknown[], info: unknown[] }>;
   }
 
   interface SolidFileClientOptions {
     enableLogging?: boolean | string;
+  }
+
+  interface ZipOptions {
+    links?: LINKS;
+    withAcl?: boolean;
+    withMeta?: boolean;
+  }
+
+  interface UnzipOptions {
+    links?: LINKS;
+    withAcl?: boolean;
+    withMeta?: boolean;
+    merge?: 'replace', // or 'keep_target'
+    createPath?: true,
+    aclMode?: 'Control',
+    aclAuth?: 'may',
+    aclDefault?: 'must' // needed to allow acces to folder content .meta ...
   }
 
   type FileContent = Blob | string;

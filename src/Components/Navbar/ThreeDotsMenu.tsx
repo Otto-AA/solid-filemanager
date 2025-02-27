@@ -7,6 +7,7 @@ import CreateFolderAction from '../ContextMenu/ContextMenuActions/CreateFolderAc
 import CreateFileAction from '../ContextMenu/ContextMenuActions/CreateFileAction';
 import UploadFileAction from '../ContextMenu/ContextMenuActions/UploadFileAction';
 import ChooseLocationAction from '../ContextMenu/ContextMenuActions/ChooseLocationAction';
+import SettingsAction from '../ContextMenu/ContextMenuActions/SettingsAction';
 
 class ThreeDotsMenu extends React.Component {
   state = {
@@ -27,6 +28,7 @@ class ThreeDotsMenu extends React.Component {
     return (
       <div style={{marginLeft:'1em'}}>
         <IconButton color="inherit" 
+          data-cy="three-dots-menu"
           aria-label="More"
           aria-owns={Boolean(anchorEl) ? 'long-menu' : undefined}
           aria-haspopup="true"
@@ -39,6 +41,7 @@ class ThreeDotsMenu extends React.Component {
           <CreateFileAction handleClose={this.handleClose} />
           <UploadFileAction handleClose={this.handleClose} />
           <ChooseLocationAction handleClose={this.handleClose} />
+          <SettingsAction handleClose={this.handleClose} />
         </Menu>
       </div>
     );

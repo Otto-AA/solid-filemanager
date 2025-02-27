@@ -15,6 +15,9 @@ export const SET_HOST = 'SET_HOST'; // TODO: Consider renaming to BASE_URL
 export const RESET_WEB_ID = 'RESET_WEB_ID';
 export const SET_WEB_ID = 'SET_WEB_ID';
 
+export const TOGGLE_WITH_ACL = 'TOGGLE_WITH_ACL';
+export const TOGGLE_WITH_META = 'TOGGLE_WITH_META';
+
 export const SET_ITEMS = 'SET_ITEMS';
 
 export const SELECT_ITEMS = 'SELECT_ITEMS';
@@ -51,4 +54,5 @@ export enum DIALOGS {
     MEDIA = 'MEDIA',
     EDIT = 'EDIT',
     CONTEXT_MENU = 'CONTEXT_MENU',
+    SETTINGS = 'SETTINGS',
 };

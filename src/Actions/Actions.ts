@@ -1,6 +1,6 @@
 import * as APIHandler from '../Api/ApiHandler';
 import { Item, FileItem, FolderItem } from '../Api/Item';
-import { Action, SET_LOGGED_IN, SET_LOGGED_OUT, SET_HOST, SET_ITEMS, SET_WEB_ID, SELECT_ITEMS, TOGGLE_SELECTED_ITEM, DESELECT_ITEM, FILTER_ITEMS, RESET_FILTER, DISPLAY_LOADING, STOP_LOADING, DIALOGS, OPEN_DIALOG, CLOSE_DIALOG, SET_LOADED_BLOB, SET_UPLOAD_FILE_LIST, SET_UPLOAD_FILE_PROGRESS, SET_PATH, MOVE_FOLDER_UPWARDS, RESET_LOADED_BLOB, RESET_HOST, RESET_WEB_ID, SET_ERROR_MESSAGE, OPEN_CONTEXT_MENU, CLOSE_CONTEXT_MENU } from './actionTypes';
+import { Action, SET_LOGGED_IN, SET_LOGGED_OUT, SET_HOST, SET_ITEMS, SET_WEB_ID, SELECT_ITEMS, TOGGLE_SELECTED_ITEM, DESELECT_ITEM, FILTER_ITEMS, RESET_FILTER, DISPLAY_LOADING, STOP_LOADING, DIALOGS, OPEN_DIALOG, CLOSE_DIALOG, SET_LOADED_BLOB, SET_UPLOAD_FILE_LIST, SET_UPLOAD_FILE_PROGRESS, SET_PATH, MOVE_FOLDER_UPWARDS, RESET_LOADED_BLOB, RESET_HOST, RESET_WEB_ID, SET_ERROR_MESSAGE, OPEN_CONTEXT_MENU, CLOSE_CONTEXT_MENU, TOGGLE_WITH_ACL, TOGGLE_WITH_META } from './actionTypes';
 import { AppState } from '../Reducers/reducer';
 import { ThunkAction, ThunkDispatch } from 'redux-thunk';
 import { guessContentType } from '../Api/contentTypes';
@@ -453,6 +453,9 @@ export const setHost = makeActionCreator<string>(SET_HOST);
 export const resetHost = makeActionCreator(RESET_HOST);
 export const setWebId = makeActionCreator<string>(SET_WEB_ID);
 export const resetWebId = makeActionCreator(RESET_WEB_ID);
+
+export const toggleWithAcl = makeActionCreator(TOGGLE_WITH_ACL);
+export const toggleWithMeta = makeActionCreator(TOGGLE_WITH_META);
 
 export const setItems = makeActionCreator<Item[]>(SET_ITEMS);
 export const resetItems = () => setItems([]);
