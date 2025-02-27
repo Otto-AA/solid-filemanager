@@ -194,3 +194,13 @@ Cypress.Commands.add('givenTextFile', (user, url, content) => {
         body: content
     })
 })
+
+Cypress.Commands.add('givenBlob', (user, url, blob) => {
+    cy.authenticatedFetch(user, url, {
+        method: 'PUT',
+        headers: {
+            'content-type': blob.type,
+        },
+        body: blob
+    })
+})

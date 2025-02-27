@@ -12,6 +12,7 @@
 /coverage
 /cypress/videos
 /cypress/screenshots
+/cypress/downloads
 
 # community-solid-server
 /community-solid-server
