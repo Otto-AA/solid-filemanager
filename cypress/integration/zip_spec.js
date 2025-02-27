@@ -1,7 +1,7 @@
 const path = require('path');
 const JSZip = require('jszip')
 
-describe('file operations', () => {
+describe('zip operations', () => {
     beforeEach('login user', () => {
         cy.createRandomAccount().as('user')
     })
