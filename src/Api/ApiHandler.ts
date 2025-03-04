@@ -83,7 +83,7 @@ export const getItemList = async (path: string): Promise<Item[]> => {
         cache.add(path, itemList);
         return itemList
     } catch (err) {
-        throw handleFetchError(err);
+        throw await handleFetchError(err);
     }
 };
 
@@ -99,7 +99,7 @@ export const getFileBlob = async (path: string, filename: string): Promise<Blob>
         const res = await fileClient.get(buildFileUrl(path, filename));
         return res.blob();
     } catch (err) {
-        throw handleFetchError(err);
+        throw await handleFetchError(err);
     }
 };
 
@@ -224,7 +224,7 @@ export const copyItems = async (path: string, destination: string, filenames: st
             }))
         }
     }
-    
+
     return Promise.all(promises)
         .then(responses => responses.flat(1))
         .catch(handleFetchError);
@@ -241,8 +241,8 @@ export const uploadFiles = async (path: string, fileList: FileList): Promise<Res
         return Promise.reject('No files to upload');
     }
     const promises = Array.from(fileList).map(async file => {
-      const contentType = file.type || (await guessContentType(file.name, file))
-      return updateFile(path, file.name, file, contentType)
+        const contentType = file.type || (await guessContentType(file.name, file))
+        return updateFile(path, file.name, file, contentType)
     });
     return Promise.all(promises).catch(handleFetchError);
 };
@@ -250,7 +250,7 @@ export const uploadFiles = async (path: string, fileList: FileList): Promise<Res
 /**
  * Wrap API response for uploading a file
  */
-export const updateFile = (path: string, fileName: string, content: Blob|string, contentType: string): Promise<Response> => {
+export const updateFile = (path: string, fileName: string, content: Blob | string, contentType: string): Promise<Response> => {
     path = fixPath(path);
     cache.remove(path);
     return fileClient.putFile(buildFileUrl(path, fileName), content, contentType)
@@ -260,25 +260,30 @@ export const updateFile = (path: string, fileName: string, content: Blob|string,
 /**
  * Wrap API response for zipping multiple items
  */
-export const getAsZip = (path: string, itemList: Item[]): Promise<JSZip> => {
+export const getAsZip = async (path: string, itemList: Item[]): Promise<JSZip> => {
     path = fixPath(path);
 
-    if (config.withAcl() || config.withMeta()) {
-        // SFC only supports single url
-        if (itemList.length !== 1) {
-            throw new Error(`Please select exactly one item when zipping with ACL/Meta enabled.`)
-        }
-        const item = itemList[0];
-        const url = (item instanceof FolderItem) ? buildFolderUrl(path, item.name) : buildFileUrl(path, item._name)
-        return fileClient.getAsZip(url, { 
-            withAcl: config.withAcl(),
-            withMeta: config.withMeta(),
-        })
-    } else {
-        const zip = new JSZip();
+    try {
+        if (config.withAcl() || config.withMeta()) {
+            // SFC only supports single url
+            if (itemList.length !== 1) {
+                throw new Error(`Please select exactly one item when zipping with ACL/Meta enabled.`)
+            }
+            const item = itemList[0];
+            const url = (item instanceof FolderItem) ? buildFolderUrl(path, item.name) : buildFileUrl(path, item._name)
+            const zip = await fileClient.getAsZip(url, {
+                withAcl: config.withAcl(),
+                withMeta: config.withMeta(),
+            })
+            return zip;
+        } else {
+            const zip = new JSZip();
 
-        return addItemsToZip(zip, path, itemList)
-            .then(() => zip);
+            await addItemsToZip(zip, path, itemList);
+            return zip;
+        }
+    } catch (err) {
+        throw await handleFetchError(err as any);
     }
 }
 
@@ -315,7 +320,7 @@ export const extractZipArchive = async (path: string, destination: string = path
             withAcl: config.withAcl(),
             withMeta: config.withMeta(),
         })
-        if (results.err.length) throw handleFetchError(new Error(`Could not extract all files: ${JSON.stringify(results.err)}`)) 
+        if (results.err.length) throw await handleFetchError(new Error(`Could not extract all files: ${JSON.stringify(results.err)}`))
     } else {
         const blob = await getFileBlob(path, fileName);
         const zip = await JSZip.loadAsync(blob);
@@ -356,7 +361,7 @@ function getItemsInZipFolder(zip: JSZip, folderPath: string): JSZip.JSZipObject[
             const relativePath = fileName.slice(folderPath.length, fileName.length);
             if (!relativePath || fileName.slice(0, folderPath.length) !== folderPath)
                 return false;
-            
+
             // No items from subfolders
             if (relativePath.includes('/') && relativePath.slice(0, -1).includes('/'))
                 return false;
