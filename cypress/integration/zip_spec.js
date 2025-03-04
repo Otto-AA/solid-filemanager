@@ -84,7 +84,7 @@ describe('zip operations', () => {
     })
 
     it('can download ACL files when enabled', function () {
-        const folderName = 'test-folder'
+        const folderName = 'test-folder-2'
         const folderUrl = `${this.user.podUrl}/${folderName}`
         const acl = `
         @prefix : <${folderUrl}/file.txt.acl#>.
@@ -120,7 +120,7 @@ describe('zip operations', () => {
     })
 
     it('does not extract .acl files per default', function () {
-        const folderName = 'test-folder'
+        const folderName = 'test-folder-3'
         const folderUrl = `${this.user.podUrl}/${folderName}`
         const acl = `
         @prefix : <${folderUrl}/file.txt.acl#>.
@@ -160,7 +160,7 @@ describe('zip operations', () => {
     })
 
     it('can extract .acl files when enabled', function () {
-        const folderName = 'test-folder'
+        const folderName = 'test-folder-1'
         const folderUrl = `${this.user.podUrl}/${folderName}`
         const acl = `
         @prefix : <${folderUrl}/file.txt.acl#>.
